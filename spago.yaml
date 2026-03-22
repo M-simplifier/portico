@@ -1,0 +1,17 @@
+package:
+  name: portico
+  dependencies:
+    - effect
+    - maybe
+    - prelude
+    - strings
+  test:
+    main: Test.Main
+    dependencies:
+      - effect
+      - exceptions
+      - strings
+workspace:
+  packageSet:
+    registry: 73.3.0
+  extraPackages: {}

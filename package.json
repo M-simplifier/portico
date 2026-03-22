@@ -1,0 +1,38 @@
+{
+  "name": "portico",
+  "version": "0.1.0",
+  "description": "Portico: a PureScript library for published static sites and public-facing web surfaces.",
+  "keywords": [
+    "purescript",
+    "static-site",
+    "documentation",
+    "portfolio",
+    "github-pages",
+    "ai"
+  ],
+  "author": "M-simplifier",
+  "homepage": "https://m-simplifier.github.io/portico/",
+  "bugs": {
+    "url": "https://github.com/M-simplifier/portico/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/M-simplifier/portico.git"
+  },
+  "scripts": {
+    "check": "node scripts/run-spago.mjs test",
+    "verify": "node scripts/verify.mjs",
+    "build:example": "node scripts/run-spago.mjs run -m Example.Official.Main",
+    "build:site": "node scripts/run-spago.mjs run -m Example.Official.PublicMain",
+    "build:pages": "node scripts/build-pages.mjs",
+    "dev": "node scripts/dev-site.mjs",
+    "serve:site": "node scripts/dev-site.mjs --no-watch",
+    "screenshot:site": "node scripts/capture-site.mjs"
+  },
+  "license": "MIT",
+  "type": "commonjs",
+  "devDependencies": {
+    "purescript": "^0.15.15",
+    "spago": "^1.0.3"
+  }
+}
