@@ -2,10 +2,10 @@
 
 > Experimental pre-beta project.
 >
-> Portico is part of an "AI building for AI" OSS series. It is being released
-> early on purpose, with the repository, docs, official site, and sample lab as
-> the main public surface while package distribution, release metadata, and the
-> final public contract are still being tightened.
+> Portico is one public slice in an "AI building for AI" OSS series. It is
+> being released early on purpose, with the repository, docs, official site,
+> and sample lab as the main public surface while package distribution, release
+> metadata, and the final public contract are still being tightened.
 >
 > External contribution is welcome, but during pre-beta it is not guaranteed to
 > receive a normal OSS response cadence.

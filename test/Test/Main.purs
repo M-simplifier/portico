@@ -63,10 +63,12 @@ main = do
     publishabilityPage = expectRenderedPage "guide/publishability.html" renderedPages
     releasePage = expectRenderedPage "releases/0-1-0.html" renderedPages
   assert "document should include the site title" (contains (Pattern "Portico") homePage.html)
-  assert "hero eyebrow should render" (contains (Pattern "AI-native static sites") homePage.html)
+  assert "hero eyebrow should render" (contains (Pattern "AI-building-for-AI OSS series") homePage.html)
   assert "home page should advertise the sample lab" (contains (Pattern "href=\"lab/index.html\"") homePage.html)
   assert "home page should advertise the preset catalog" (contains (Pattern "href=\"lab/presets.html\"") homePage.html)
-  assert "home page should render updated build copy" (contains (Pattern "Render and emit multi-page HTML, assets, and metadata without app-shell overhead.") homePage.html)
+  assert "home page should render updated build copy" (contains (Pattern "This slice is experimental, and contribution response is not guaranteed during pre-beta.") homePage.html)
+  assert "home page should surface repo-first pre-beta posture" (contains (Pattern "Repo-first pre-beta") homePage.html)
+  assert "home page should surface contribution posture" (contains (Pattern "Contributions are welcome, but the pre-beta OSS cadence is intentionally experimental rather than guaranteed.") homePage.html)
   assert "guide page should render code sample content" (contains (Pattern "import Portico") guidePage.html)
   assert "guide page should resolve the home route relatively" (contains (Pattern "href=\"../index.html\"") guidePage.html)
   assert "guide page should resolve theme links relatively" (contains (Pattern "href=\"theme-system.html\"") guidePage.html)
@@ -75,7 +77,7 @@ main = do
   assert "publishability page should mention validateSite" (contains (Pattern "validateSite") publishabilityPage.html)
   assert "publishability page should mention canonical and social metadata" (contains (Pattern "Canonical, OG, and Twitter tags") publishabilityPage.html)
   assert "publishability page should mention the release-oriented verify command" (contains (Pattern "npm run verify") publishabilityPage.html)
-  assert "release copy should render" (contains (Pattern "canonical/social metadata support") releasePage.html)
+  assert "release copy should render" (contains (Pattern "repo-first pre-beta path") releasePage.html)
   assert "theme styles should render" (contains (Pattern "--accent:#0f766e") homePage.html)
   assert "inline render should include a style tag" (contains (Pattern "<style>") homePage.html)
 

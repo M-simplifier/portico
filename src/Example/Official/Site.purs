@@ -38,8 +38,8 @@ officialSite =
     , slugNavItem "Release" "releases/0-1-0"
     , collectionNavItem "Sample Lab" "lab/index.html"
     ]
-    (withDescription
-      "Portico is a PureScript library for published static sites, built around semantic site structure, theme discipline, and static output."
+      (withDescription
+      "Portico is a PureScript library for published static sites, built around semantic site structure, theme discipline, and static output. It is one repo-first slice of an AI-building-for-AI OSS series."
       (site
         "Portico"
         [ homePage
@@ -51,7 +51,7 @@ officialSite =
   where
   homePage =
     withSummary
-      "Semantic pages, official theme selection, validation, and static build output for public-facing sites."
+      "Semantic pages, official theme selection, validation, and static build output for public-facing sites in a repo-first pre-beta slice."
       (page
         "index"
         Landing
@@ -65,10 +65,10 @@ officialSite =
                   , collectionLinkCard "Open the preset catalog" "lab/presets.html" (Just "Choose a theme by site intent rather than by accent.")
                   ]
                   (withEyebrow
-                    "AI-native static sites"
+                    "AI-building-for-AI OSS series"
                     (hero
                       "Published surfaces in PureScript."
-                      "Portico models docs, release pages, portfolios, and other public surfaces as semantic site data instead of app-shell UI.")))
+                      "Portico models docs, release pages, portfolios, and other public surfaces as semantic site data instead of app-shell UI. This slice is experimental, and contribution response is not guaranteed during pre-beta.")))
             , FeatureGridBlock
                 [ feature "Semantic DSL" "Keep public information architecture explicit instead of scattering ad hoc markup."
                 , feature "Official theme system" "Choose a preset by site shape, then customize in layers without collapsing back into raw CSS decisions."
@@ -93,12 +93,12 @@ officialSite =
         , namedSection
             "Current posture"
             [ CalloutBlock
-                (callout Quiet "Repo-first pre-beta" "Portico now has a real repo-first evaluation path: official site, mounted sample lab, validation, deploy-oriented output, and release-oriented verification are all in place. The remaining work is sharper site vocabulary, richer diagnostics, stronger assets, and final public-release hygiene.")
+                (callout Quiet "Repo-first pre-beta" "Portico is being published as an experimental AI-building-for-AI OSS series slice. The official site, mounted sample lab, validation, deploy-oriented output, and release-oriented verification are all in place, while contribution response is intentionally not guaranteed until the public contract settles.")
             , TimelineBlock
-                [ timelineEntry "Official site" "The root site is now authored in Portico itself, so the library is pressure-testing its own docs and front door." Nothing
+                [ timelineEntry "Official site" "The root site is now authored in Portico itself, so the library is pressure-testing its own docs and front door as public truth." Nothing
                 , timelineEntry "Mounted sample lab" "The chooser now lives alongside the official site rather than existing only as an isolated demo gallery." Nothing
                 , timelineEntry "Release gate" "A single `npm run verify` path now checks the typed core plus standalone, official-site, and GitHub Pages-oriented builds." Nothing
-                , timelineEntry "Next release slice" "Deepen the semantic block vocabulary, strengthen diagnostics, tighten package metadata, and make the asset/theme story more convincing before public launch." Nothing
+                , timelineEntry "Contributor posture" "Contributions are welcome, but the pre-beta OSS cadence is intentionally experimental rather than guaranteed." Nothing
                 ]
             ]
         ])

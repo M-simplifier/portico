@@ -2,7 +2,7 @@
 
 ## Thesis
 
-Portico exists for one job:
+Portico exists for one job, as one public slice in an AI-building-for-AI OSS series:
 
 - build published static sites in PureScript with a semantic DSL, a strong default look, and a workflow that is easy for high-agency AI agents to use correctly
 
@@ -100,6 +100,8 @@ That means:
 - validation passes that can catch broken static-site structure before publish time
 
 Humans still matter, but the user experience should assume that much of the authoring work may be delegated to an AI that benefits from stronger structure and fewer ambiguous choices.
+
+Because this is a pre-beta series slice, contribution response and final contract promises should stay conservative until the public surface settles.
 
 ## Name
 
