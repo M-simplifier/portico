@@ -55,29 +55,35 @@ main = do
     showcaseOutputDirectory = "/tmp/portico-showcase-output"
     publicOutputDirectory = "/tmp/portico-public-output"
     pagesOutputDirectory = "/tmp/portico-pages-output"
-  assert "expected five rendered pages" (length renderedPages == 5)
+  assert "expected eight rendered pages" (length renderedPages == 8)
   let
     homePage = expectRenderedPage "index.html" renderedPages
+    learnPage = expectRenderedPage "learn/fit.html" renderedPages
     guidePage = expectRenderedPage "guide/getting-started.html" renderedPages
+    aiPage = expectRenderedPage "guide/ai-path.html" renderedPages
+    referencePage = expectRenderedPage "reference/public-surface.html" renderedPages
     themePage = expectRenderedPage "guide/theme-system.html" renderedPages
     publishabilityPage = expectRenderedPage "guide/publishability.html" renderedPages
     releasePage = expectRenderedPage "releases/0-1-0.html" renderedPages
   assert "document should include the site title" (contains (Pattern "Portico") homePage.html)
-  assert "hero eyebrow should render" (contains (Pattern "AI-building-for-AI OSS series") homePage.html)
+  assert "hero eyebrow should render" (contains (Pattern "Published static sites") homePage.html)
   assert "home page should advertise the sample lab" (contains (Pattern "href=\"lab/index.html\"") homePage.html)
   assert "home page should advertise the preset catalog" (contains (Pattern "href=\"lab/presets.html\"") homePage.html)
-  assert "home page should render updated build copy" (contains (Pattern "This slice is experimental, and contribution response is not guaranteed during pre-beta.") homePage.html)
-  assert "home page should surface repo-first pre-beta posture" (contains (Pattern "Repo-first pre-beta") homePage.html)
-  assert "home page should surface contribution posture" (contains (Pattern "Contributions are welcome, but the pre-beta OSS cadence is intentionally experimental rather than guaranteed.") homePage.html)
+  assert "home page should render the new fit copy" (contains (Pattern "It is not a lighter Asterism") homePage.html)
+  assert "home page should surface repo-first posture" (contains (Pattern "Pre-beta, repo-first") homePage.html)
+  assert "learn page should explain the category boundary" (contains (Pattern "published public surfaces") learnPage.html)
+  assert "learn page should call out the Asterism boundary" (contains (Pattern "Not a lighter Asterism") learnPage.html)
   assert "guide page should render code sample content" (contains (Pattern "import Portico") guidePage.html)
   assert "guide page should resolve the home route relatively" (contains (Pattern "href=\"../index.html\"") guidePage.html)
   assert "guide page should resolve theme links relatively" (contains (Pattern "href=\"theme-system.html\"") guidePage.html)
+  assert "ai path should surface the repo-first skill" (contains (Pattern "portico-user skill") aiPage.html)
+  assert "reference page should mention Portico.Validate" (contains (Pattern "Portico.Validate") referencePage.html)
   assert "theme guide should include officialThemeWith content" (contains (Pattern "officialThemeWith") themePage.html)
   assert "theme guide should link to the preset catalog relatively" (contains (Pattern "href=\"../lab/presets.html\"") themePage.html)
   assert "publishability page should mention validateSite" (contains (Pattern "validateSite") publishabilityPage.html)
-  assert "publishability page should mention canonical and social metadata" (contains (Pattern "Canonical, OG, and Twitter tags") publishabilityPage.html)
+  assert "publishability page should mention canonical and social metadata" (contains (Pattern "Canonical, OG, and Twitter tags are derived") publishabilityPage.html)
   assert "publishability page should mention the release-oriented verify command" (contains (Pattern "npm run verify") publishabilityPage.html)
-  assert "release copy should render" (contains (Pattern "repo-first pre-beta path") releasePage.html)
+  assert "release copy should render" (contains (Pattern "Portico is in public pre-beta") releasePage.html)
   assert "theme styles should render" (contains (Pattern "--accent:#0f766e") homePage.html)
   assert "inline render should include a style tag" (contains (Pattern "<style>") homePage.html)
 
@@ -100,10 +106,12 @@ main = do
   let
     staticHomePage = expectRenderedPage "index.html" renderedStaticSite.pages
     staticGuidePage = expectRenderedPage "guide/getting-started.html" renderedStaticSite.pages
+    staticAiPage = expectRenderedPage "guide/ai-path.html" renderedStaticSite.pages
     staticThemePage = expectRenderedPage "guide/theme-system.html" renderedStaticSite.pages
     staticReleasePage = expectRenderedPage "releases/0-1-0.html" renderedStaticSite.pages
   assert "home page should link the shared stylesheet" (contains (Pattern "href=\"assets/portico.css\"") staticHomePage.html)
   assert "guide page should link the shared stylesheet relatively" (contains (Pattern "href=\"../assets/portico.css\"") staticGuidePage.html)
+  assert "ai page should link the shared stylesheet relatively" (contains (Pattern "href=\"../assets/portico.css\"") staticAiPage.html)
   assert "theme page should link the shared stylesheet relatively" (contains (Pattern "href=\"../assets/portico.css\"") staticThemePage.html)
   assert "release page should link the shared stylesheet relatively" (contains (Pattern "href=\"../assets/portico.css\"") staticReleasePage.html)
   assert "static render should not inline styles" (not (contains (Pattern "<style>") staticHomePage.html))
@@ -149,18 +157,24 @@ main = do
   removeTree outputDirectory
   emitSite outputDirectory officialTheme officialSite
   emittedHome <- readTextFile (outputDirectory <> "/index.html")
+  emittedLearn <- readTextFile (outputDirectory <> "/learn/fit.html")
   emittedGuide <- readTextFile (outputDirectory <> "/guide/getting-started.html")
+  emittedAi <- readTextFile (outputDirectory <> "/guide/ai-path.html")
+  emittedReference <- readTextFile (outputDirectory <> "/reference/public-surface.html")
   emittedThemeGuide <- readTextFile (outputDirectory <> "/guide/theme-system.html")
   emittedPublishability <- readTextFile (outputDirectory <> "/guide/publishability.html")
   emittedRelease <- readTextFile (outputDirectory <> "/releases/0-1-0.html")
   emittedStylesheet <- readTextFile (outputDirectory <> "/assets/portico.css")
-  assert "emitted home page should contain the hero title" (contains (Pattern "Published surfaces in PureScript.") emittedHome)
+  assert "emitted home page should contain the hero title" (contains (Pattern "Build published static sites in PureScript.") emittedHome)
   assert "emitted home page should link the sample lab" (contains (Pattern "href=\"lab/index.html\"") emittedHome)
-  assert "emitted guide page should contain guide prose" (contains (Pattern "stay on the semantic path") emittedGuide)
-  assert "emitted guide page should contain the code sample title" (contains (Pattern "Minimal site definition") emittedGuide)
+  assert "emitted learn page should contain the Asterism boundary" (contains (Pattern "Not a lighter Asterism") emittedLearn)
+  assert "emitted guide page should contain guide prose" (contains (Pattern "supported path") emittedGuide)
+  assert "emitted guide page should contain the code sample title" (contains (Pattern "One import, one site, one validated build path") emittedGuide)
+  assert "emitted ai path should mention the implementation agent packet" (contains (Pattern "Minimal task packet for an implementation agent") emittedAi)
+  assert "emitted reference page should mention Portico.Build" (contains (Pattern "Portico.Build") emittedReference)
   assert "emitted theme guide should link to the preset catalog relatively" (contains (Pattern "href=\"../lab/presets.html\"") emittedThemeGuide)
   assert "emitted publishability page should contain faq content" (contains (Pattern "Do I need a base URL to render?") emittedPublishability)
-  assert "emitted release page should contain status callout" (contains (Pattern "Portico is early") emittedRelease)
+  assert "emitted release page should contain status callout" (contains (Pattern "Portico is in public pre-beta") emittedRelease)
   assert "emitted home page should link the shared stylesheet" (contains (Pattern "href=\"assets/portico.css\"") emittedHome)
   assert "emitted guide page should link the shared stylesheet" (contains (Pattern "href=\"../assets/portico.css\"") emittedGuide)
   assert "emitted stylesheet should contain shared block styles" (contains (Pattern ".block-card") emittedStylesheet)
@@ -172,7 +186,7 @@ main = do
   showcaseHome <- readTextFile (showcaseOutputDirectory <> "/index.html")
   showcasePresets <- readTextFile (showcaseOutputDirectory <> "/presets.html")
   showcaseStylesheet <- readTextFile (showcaseOutputDirectory <> "/assets/portico.css")
-  porticoSampleHome <- readTextFile (showcaseOutputDirectory <> "/samples/portico/index.html")
+  docsSampleHome <- readTextFile (showcaseOutputDirectory <> "/samples/northline-docs/index.html")
   productSampleHome <- readTextFile (showcaseOutputDirectory <> "/samples/northstar-cloud/index.html")
   productProof <- readTextFile (showcaseOutputDirectory <> "/samples/northstar-cloud/proof.html")
   productRollout <- readTextFile (showcaseOutputDirectory <> "/samples/northstar-cloud/rollout.html")
@@ -191,7 +205,7 @@ main = do
   assert "showcase home should advertise the sample lab" (contains (Pattern "Portico Sample Lab") showcaseHome)
   assert "showcase home should explain the new sample navigation pattern" (contains (Pattern "Every sample keeps an explicit Overview route in the header") showcaseHome)
   assert "showcase home should link to the preset catalog" (contains (Pattern "href=\"presets.html\"") showcaseHome)
-  assert "showcase home should link to the portico sample" (contains (Pattern "href=\"samples/portico/index.html\"") showcaseHome)
+  assert "showcase home should link to the docs sample" (contains (Pattern "href=\"samples/northline-docs/index.html\"") showcaseHome)
   assert "showcase home should link to the product sample" (contains (Pattern "href=\"samples/northstar-cloud/index.html\"") showcaseHome)
   assert "showcase home should link to the atelier sample" (contains (Pattern "href=\"samples/atelier-north/index.html\"") showcaseHome)
   assert "showcase home should link to the profile sample" (contains (Pattern "href=\"samples/mina-arai/index.html\"") showcaseHome)
@@ -201,8 +215,8 @@ main = do
   assert "preset catalog should render the new official theme configuration code sample" (contains (Pattern "officialThemeWith") showcasePresets)
   assert "preset catalog should mention officialThemeOptions in the customization ladder" (contains (Pattern "officialThemeOptions") showcasePresets)
   assert "showcase root stylesheet should reflect palette injection" (contains (Pattern "--accent:#9a3412") showcaseStylesheet)
-  assert "portico sample should still resolve its guide route locally" (contains (Pattern "href=\"guide/getting-started.html\"") porticoSampleHome)
-  assert "portico sample should expose the sample lab in primary navigation" (contains (Pattern "href=\"../../index.html\">Sample Lab</a>") porticoSampleHome)
+  assert "docs sample should still resolve its concepts route locally" (contains (Pattern "href=\"concepts.html\"") docsSampleHome)
+  assert "docs sample should expose the sample lab in primary navigation" (contains (Pattern "href=\"../../index.html\">Sample Lab</a>") docsSampleHome)
   assert "product sample should render the landing quote" (contains (Pattern "Northstar replaced three disconnected launch checklists") productSampleHome)
   assert "product sample should render FAQ content" (contains (Pattern "Can we keep our existing docs URLs?") productSampleHome)
   assert "product sample should render site image content" (contains (Pattern "src=\"assets/operations-map.svg\"") productSampleHome)
@@ -251,7 +265,7 @@ main = do
   publicLabPresets <- readTextFile (publicOutputDirectory <> "/lab/presets.html")
   publicSampleHome <- readTextFile (publicOutputDirectory <> "/samples/northstar-cloud/index.html")
   publicSampleNested <- readTextFile (publicOutputDirectory <> "/samples/mina-arai/work/harbor-clinic.html")
-  assert "public home should use the official site root" (contains (Pattern "Published surfaces in PureScript.") publicHome)
+  assert "public home should use the official site root" (contains (Pattern "Build published static sites in PureScript.") publicHome)
   assert "public guide should link back to the sample lab relatively" (contains (Pattern "href=\"../lab/index.html\"") publicGuide)
   assert "public lab should link back to the official site" (contains (Pattern "href=\"../index.html\">Official Site</a>") publicLabHome)
   assert "public lab should keep the preset catalog local to the mounted lab" (contains (Pattern "href=\"presets.html\"") publicLabHome)

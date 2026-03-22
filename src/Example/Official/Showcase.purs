@@ -20,7 +20,6 @@ import Data.Maybe (Maybe(..))
 import Example.Official.Artwork (minaPortraitSvg, northstarDiagramSvg)
 import Example.Official.FileSystem (removeTree)
 import Effect (Effect)
-import Example.Official.Site (officialSite)
 import Portico
   ( Block(..)
   , CalloutTone(..)
@@ -140,11 +139,11 @@ mountedShowcasePaths mountPath =
         Just "index.html"
   }
 
-porticoSample :: SampleDirectoryEntry
-porticoSample =
-  { slug: "portico"
-  , label: "Portico Docs"
-  , summary: "Docs, guide, and release surfaces living under one official site."
+docsSample :: SampleDirectoryEntry
+docsSample =
+  { slug: "northline-docs"
+  , label: "Northline Docs"
+  , summary: "A calm docs surface with concepts, reference, and release adjacency."
   }
 
 northstarSample :: SampleDirectoryEntry
@@ -184,7 +183,7 @@ journalSample =
 
 sampleDirectory :: Array SampleDirectoryEntry
 sampleDirectory =
-  [ porticoSample
+  [ docsSample
   , northstarSample
   , atelierSample
   , minaSample
@@ -195,8 +194,8 @@ sampleDirectory =
 officialPresetGuides :: Array ThemeGuideEntry
 officialPresetGuides =
   [ { label: "SignalPaper"
-    , path: sampleIndexPath porticoSample
-    , summary: "Calm default for docs and official project surfaces. See it on Portico Docs."
+    , path: sampleIndexPath docsSample
+    , summary: "Calm default for docs and official project surfaces. See it on Northline Docs."
     }
   , { label: "CopperLedger"
     , path: sampleIndexPath atelierSample
@@ -229,11 +228,11 @@ sampleSites = sampleSitesWithPaths rootShowcasePaths
 
 sampleSitesWithPaths :: ShowcasePaths -> Array SampleSite
 sampleSitesWithPaths paths =
-  [ { slug: porticoSample.slug
-    , label: porticoSample.label
-    , summary: porticoSample.summary
+  [ { slug: docsSample.slug
+    , label: docsSample.label
+    , summary: docsSample.summary
     , theme: officialTheme
-    , site: porticoSampleSite paths
+    , site: docsSampleSite paths
     , assets: []
     }
   , { slug: northstarSample.slug
@@ -338,7 +337,7 @@ showcaseSiteWithPaths paths =
                     "Chooser"
                     [ HeroBlock
                         (withActions
-                          [ collectionLinkCard "See SignalPaper in practice" (sampleIndexPath porticoSample) (Just "Open the Portico Docs sample.")
+                          [ collectionLinkCard "See SignalPaper in practice" (sampleIndexPath docsSample) (Just "Open the Northline Docs sample.")
                           , collectionLinkCard "See NightCircuit in practice" (sampleIndexPath summitSample) (Just "Open the Signal Summit sample.")
                           , collectionLinkCard "See accent customization" (sampleIndexPath northstarSample) (Just "Open the Northstar Cloud sample.")
                           ]
@@ -554,17 +553,135 @@ profileTheme =
       , shadow = Just "0 28px 78px rgba(45, 23, 10, 0.14)"
       })
 
-porticoSampleSite :: ShowcasePaths -> Site
-porticoSampleSite paths =
+docsSampleSite :: ShowcasePaths -> Site
+docsSampleSite paths =
   decorateSampleSite
     paths
-    porticoSample.slug
-    [ slugNavItem "Guide" "guide/getting-started"
-    , slugNavItem "Themes" "guide/theme-system"
-    , slugNavItem "Publishability" "guide/publishability"
-    , slugNavItem "Release" "releases/0-1-0"
+    docsSample.slug
+    [ slugNavItem "Concepts" "concepts"
+    , slugNavItem "Reference" "reference/routes"
+    , slugNavItem "Release" "releases/2-1-0"
     ]
-    officialSite
+    (withDescription
+      "A documentation surface for a data pipeline toolkit."
+      (site
+        "Northline Docs"
+        [ withSummary
+            "A calm docs front door with concepts, reference, and release adjacency."
+            (page
+              "index"
+              Landing
+              "Northline Docs"
+              [ namedSection
+                  "Overview"
+                  [ HeroBlock
+                      (withActions
+                        [ slugLinkCard "Read the concepts guide" "concepts" (Just "Start with the high-level model before dropping into reference details.")
+                        , slugLinkCard "Open the route reference" "reference/routes" (Just "Jump directly to the nested reference page and route-helper examples.")
+                        , sampleLabReturnCard paths "Compare this docs surface against the rest of the pressure-test gallery."
+                        ]
+                        (withEyebrow
+                          "Docs sample"
+                          (hero
+                            "Calm docs should orient before they impress."
+                            "This sample pressures Portico with a docs front door, concept page, nested reference page, and release adjacency without turning the surface into a control console.")))
+                  , FeatureGridBlock
+                      [ feature "Concept pages" "A docs front door should tell readers what they are looking at before it starts drilling into procedures."
+                      , feature "Nested reference" "The route model has to stay coherent even once reference pages stop living at the top level."
+                      , feature "Release adjacency" "Docs sites often need release notes nearby without forcing a second, unrelated surface."
+                      , feature "Calm wayfinding" "The page should keep next steps obvious without turning navigation into a dashboard."
+                      ]
+                  , CalloutBlock
+                      (callout Accent "Pressure point" "This sample exists so the docs category can be pressure-tested without duplicating the official Portico site itself.")
+                  ]
+              ])
+        , withSummary
+            "A conceptual guide page for the docs sample."
+            (page
+              "concepts"
+              Documentation
+              "Data Flow"
+              [ namedSection
+                  "Model"
+                  [ ProseBlock "Northline treats ingestion as one public pipeline: capture, normalize, then publish. The docs surface should let readers understand that shape before they need every switch and flag."
+                  , TimelineBlock
+                      [ timelineEntry "Capture" "Start with the source boundary and what enters the system." Nothing
+                      , timelineEntry "Normalize" "Turn source variance into one stable public model before reference details take over." Nothing
+                      , timelineEntry "Publish" "Make the output path explicit so guides, release notes, and support surfaces stay aligned." Nothing
+                      ]
+                  , CodeBlock
+                      (codeSample
+                        "pipeline:\n  capture: ingest source events\n  normalize: map fields to one public schema\n  publish: emit route-safe static output"
+                        (Just "yaml")
+                        (Just "Concept sketch"))
+                  ]
+              , namedSection
+                  "Next"
+                  [ LinkGridBlock
+                      [ slugLinkCard "Open the route reference" "reference/routes" (Just "Move from concept framing into nested reference detail.")
+                      , slugLinkCard "Read the release note" "releases/2-1-0" (Just "See how a docs release page can live next to guides and reference.")
+                      , slugLinkCard "Back to the docs front door" "index" (Just "Return to the sample home page.")
+                      ]
+                  ]
+              ])
+        , withSummary
+            "A nested reference page for docs-style crosslinking."
+            (page
+              "reference/routes"
+              Documentation
+              "Route Helpers"
+              [ namedSection
+                  "Reference"
+                  [ FeatureGridBlock
+                      [ feature "`slugPath`" "Use page slugs as semantic site routes instead of hand-writing output paths."
+                      , feature "`collectionLinkCard`" "Link back into a mounted collection when a site sits inside a larger static output tree."
+                      , feature "`emitMountedSite`" "Emit a whole site below a mount point without losing coherent relative links."
+                      ]
+                  , CodeBlock
+                      (codeSample
+                        "import Portico\n\nsampleSite =\n  withNavigation\n    [ collectionNavItem \"Sample Lab\" \"../index.html\" ]\n    (site \"Northline Docs\" ...)"
+                        (Just "purescript")
+                        (Just "Mounted docs route sketch"))
+                  ]
+              , namedSection
+                  "Questions"
+                  [ FaqBlock
+                      [ faqEntry "When should I use collection helpers?" "Use them when the current site is being emitted under a mount path inside a larger static output tree."
+                      , faqEntry "Should docs pages hand-write relative links?" "No. Prefer Portico route helpers so nested pages stay coherent as the output tree evolves."
+                      , faqEntry "Does docs IA belong in the theme layer?" "No. Theme can shape reading posture, but docs structure still belongs in the semantic site model."
+                      ]
+                  , LinkGridBlock
+                      [ slugLinkCard "Back to the docs front door" "index" (Just "Return to the sample overview.")
+                      , slugLinkCard "Read the concepts guide" "concepts" (Just "Return to the conceptual explanation page.")
+                      , slugLinkCard "Read the release note" "releases/2-1-0" (Just "See release adjacency from a nested reference page.")
+                      ]
+                  ]
+              ])
+        , withSummary
+            "A release note page living next to guides and reference."
+            (page
+              "releases/2-1-0"
+              ReleaseNotes
+              "Release 2.1.0"
+              [ namedSection
+                  "Highlights"
+                  [ FeatureGridBlock
+                      [ feature "Guide and reference adjacency" "Release notes sit next to docs content instead of forcing a separate public surface."
+                      , feature "Route-safe output" "The sample keeps nested reference and release routes coherent under one static tree."
+                      , feature "Calm public posture" "The release page reads like docs truth, not like a second marketing site."
+                      ]
+                  , CalloutBlock
+                      (callout Quiet "Pressure point" "This page checks whether Portico can keep release communication close to documentation without flattening the site into one tone.")
+                  ]
+              , namedSection
+                  "Next"
+                  [ LinkGridBlock
+                      [ slugLinkCard "Back to the docs front door" "index" (Just "Return to the sample overview.")
+                      , slugLinkCard "Open the route reference" "reference/routes" (Just "Jump back into the nested reference page.")
+                      ]
+                  ]
+              ])
+        ]))
 
 atelierSite :: ShowcasePaths -> Site
 atelierSite paths =
