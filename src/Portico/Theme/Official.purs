@@ -274,9 +274,9 @@ blueLedgerSpacing =
 
 copperLedgerTypography :: Typography
 copperLedgerTypography =
-  { display: "\"Fraunces\", Georgia, serif"
-  , body: "\"Public Sans\", \"Helvetica Neue\", sans-serif"
-  , mono: "\"IBM Plex Mono\", monospace"
+  { display: "\"Fraunces\", \"Hiragino Mincho ProN\", \"Yu Mincho\", \"Noto Serif JP\", Georgia, serif"
+  , body: "\"Public Sans\", \"Hiragino Sans\", \"Yu Gothic UI\", \"Yu Gothic\", \"Hiragino Kaku Gothic ProN\", \"Noto Sans JP\", \"Helvetica Neue\", sans-serif"
+  , mono: "\"IBM Plex Mono\", \"SFMono-Regular\", \"Hiragino Sans\", \"Yu Gothic UI\", \"Noto Sans Mono CJK JP\", monospace"
   }
 
 blueLedgerSurface :: Surface
@@ -291,21 +291,21 @@ blueLedgerSurface =
 
 sourceSerifTypography :: Typography
 sourceSerifTypography =
-  { display: "\"Iowan Old Style\", \"Palatino Linotype\", serif"
-  , body: "\"Source Serif 4\", Georgia, serif"
-  , mono: "\"IBM Plex Mono\", monospace"
+  { display: "\"Iowan Old Style\", \"Hiragino Mincho ProN\", \"Yu Mincho\", \"Noto Serif JP\", \"Palatino Linotype\", serif"
+  , body: "\"Source Serif 4\", \"Hiragino Mincho ProN\", \"Yu Mincho\", \"Noto Serif JP\", Georgia, serif"
+  , mono: "\"IBM Plex Mono\", \"SFMono-Regular\", \"Hiragino Sans\", \"Yu Gothic UI\", \"Noto Sans Mono CJK JP\", monospace"
   }
 
 publicSansTypography :: Typography
 publicSansTypography =
-  { display: "\"Space Grotesk\", \"Avenir Next\", sans-serif"
-  , body: "\"Public Sans\", \"Helvetica Neue\", sans-serif"
-  , mono: "\"IBM Plex Mono\", monospace"
+  { display: "\"Space Grotesk\", \"Hiragino Sans\", \"Yu Gothic UI\", \"Yu Gothic\", \"Noto Sans JP\", \"Avenir Next\", sans-serif"
+  , body: "\"Public Sans\", \"Hiragino Sans\", \"Yu Gothic UI\", \"Yu Gothic\", \"Hiragino Kaku Gothic ProN\", \"Noto Sans JP\", \"Helvetica Neue\", sans-serif"
+  , mono: "\"IBM Plex Mono\", \"SFMono-Regular\", \"Hiragino Sans\", \"Yu Gothic UI\", \"Noto Sans Mono CJK JP\", monospace"
   }
 
 newsreaderTypography :: Typography
 newsreaderTypography =
-  { display: "\"Newsreader\", Georgia, serif"
-  , body: "\"Source Serif 4\", Georgia, serif"
-  , mono: "\"IBM Plex Mono\", monospace"
+  { display: "\"Newsreader\", \"Hiragino Mincho ProN\", \"Yu Mincho\", \"Noto Serif JP\", Georgia, serif"
+  , body: "\"Source Serif 4\", \"Hiragino Mincho ProN\", \"Yu Mincho\", \"Noto Serif JP\", Georgia, serif"
+  , mono: "\"IBM Plex Mono\", \"SFMono-Regular\", \"Hiragino Sans\", \"Yu Gothic UI\", \"Noto Sans Mono CJK JP\", monospace"
   }

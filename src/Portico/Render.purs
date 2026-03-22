@@ -16,7 +16,7 @@ import Prelude
 
 import Data.Array as Array
 import Data.Foldable (foldMap)
-import Data.Maybe (Maybe(..))
+import Data.Maybe (Maybe(..), maybe)
 import Data.String (joinWith)
 import Portico.Site (AssetTarget(..), Block(..), CalloutTone(..), LinkCard, LinkTarget(..), Locale, LocalizedSite, LocalizedVariant, NavItem, Page, PageKind(..), Section, Site, SiteLabels, localeCode, pageKey, pagePath)
 import Portico.Theme (Theme)
@@ -87,7 +87,7 @@ renderMountedSite mountPath stylesheetPath currentTheme currentSite =
   { pages: map (renderPageWithStylesheetAtMount mountPath stylesheetPath currentTheme currentSite) currentSite.pages
   , assets:
       [ { path: mountedPath mountPath stylesheetPath
-        , content: renderStylesheet currentTheme
+        , content: renderStylesheetForSite currentSite currentTheme
         }
       ]
   }
@@ -120,7 +120,7 @@ renderDocument routeContext localizationContext styleStrategy currentTheme curre
     , "<title>"
     , escapeHtml currentDocumentTitle
     , "</title>"
-    , renderHeadStyles styleStrategy currentTheme
+    , renderHeadStyles styleStrategy currentSite currentTheme
     , "</head>"
     , "<body>"
     , "<a class=\"skip-link\" href=\"#main-content\">"
@@ -177,7 +177,7 @@ renderLocalizedVariant collectionMount stylesheetPath currentTheme currentLocali
           currentVariant.site.pages
     , assets:
         [ { path: mountedPath mountPath stylesheetPath
-          , content: renderStylesheet currentTheme
+          , content: renderStylesheetForSite currentVariant.site currentTheme
           }
         ]
     }
@@ -201,11 +201,11 @@ renderLocalizedPageWithStylesheetAtMount collectionMount mountPath stylesheetPat
           currentPage
     }
 
-renderHeadStyles :: StyleStrategy -> Theme -> String
-renderHeadStyles styleStrategy currentTheme =
+renderHeadStyles :: StyleStrategy -> Site -> Theme -> String
+renderHeadStyles styleStrategy currentSite currentTheme =
   case styleStrategy of
     InlineStyles ->
-      "<style>" <> renderStylesheet currentTheme <> "</style>"
+      "<style>" <> renderStylesheetForSite currentSite currentTheme <> "</style>"
     LinkedStylesheet href ->
       "<link rel=\"stylesheet\" href=\"" <> escapeHtml href <> "\">"
 
@@ -847,8 +847,25 @@ foreign import relativeHref :: String -> String -> String
 
 renderStylesheet :: Theme -> String
 renderStylesheet currentTheme =
+  renderStylesheetWithImports Nothing currentTheme
+
+renderStylesheetForSite :: Site -> Theme -> String
+renderStylesheetForSite currentSite currentTheme =
+  renderStylesheetWithImports (stylesheetImportForSite currentSite) currentTheme
+
+stylesheetImportForSite :: Site -> Maybe String
+stylesheetImportForSite currentSite =
+  case currentSite.locale of
+    Just currentLocale | localeCode currentLocale == "ja" ->
+      Just "@import url(\"https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=Noto+Serif+JP:wght@600;700&display=swap\");"
+    _ ->
+      Nothing
+
+renderStylesheetWithImports :: Maybe String -> Theme -> String
+renderStylesheetWithImports maybeImport currentTheme =
   joinWith ""
-    [ ":root{"
+    [ maybe "" identity maybeImport
+    , ":root{"
     , "--background:"
     , currentTheme.palette.background
     , ";--panel:"
@@ -974,6 +991,12 @@ renderStylesheet currentTheme =
     , ".site-footer-inner{display:grid;gap:0.45rem;padding:1.15rem 1.35rem;border:1px solid var(--border);border-radius:calc(var(--radius) * 0.8);background:color-mix(in srgb,var(--accent) 4%,var(--panel));box-shadow:var(--shadow);}"
     , ".site-footer-title,.site-footer-description{margin:0;}"
     , ".site-footer-title{font-family:var(--display-font);font-size:1.05rem;color:var(--text);}"
+    , "html:lang(ja) body{line-height:1.72;}"
+    , "html:lang(ja) .site-description{line-height:1.55;}"
+    , "html:lang(ja) .site-nav-link,html:lang(ja) .locale-switch-link{font-family:var(--body-font);font-size:0.9rem;letter-spacing:0.02em;text-transform:none;}"
+    , "html:lang(ja) .page-kind,html:lang(ja) .hero-eyebrow,html:lang(ja) .callout-tone,html:lang(ja) .link-card-meta,html:lang(ja) .metric-label,html:lang(ja) .timeline-meta,html:lang(ja) .person-role,html:lang(ja) .quote-attribution strong,html:lang(ja) .code-title{font-family:var(--body-font);letter-spacing:0.04em;text-transform:none;}"
+    , "html:lang(ja) .page-intro h1,html:lang(ja) .hero-block h1{font-size:clamp(2.35rem,5vw,4.7rem);line-height:1.08;max-width:10em;}"
+    , "html:lang(ja) .section-header h2,html:lang(ja) .link-card strong,html:lang(ja) .feature-card h3,html:lang(ja) .timeline-entry h3,html:lang(ja) .callout h3,html:lang(ja) .person-name,html:lang(ja) .faq-item summary{line-height:1.28;}"
     , "@media (max-width: 720px){"
     , ".site-header{padding:1rem;}"
     , ".site-header-inner,.page-main,.site-footer{width:min(72rem,calc(100% - 2rem));}"

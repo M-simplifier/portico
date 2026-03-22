@@ -146,7 +146,7 @@ main = do
   assert "accent override should set the accent variable" (contains (Pattern "--accent:#c2410c") accentThemeStyles)
   assert "accent override should derive the border variable" (contains (Pattern "--border:color-mix(in srgb,#c2410c 18%,#d7cfc3)") accentThemeStyles)
   assert "preset theme should switch the background variable" (contains (Pattern "--background:#08111f") presetThemeStyles)
-  assert "preset theme should switch the display font" (contains (Pattern "--display-font:\"Space Grotesk\", \"Avenir Next\", sans-serif") presetThemeStyles)
+  assert "preset theme should switch the display font" (contains (Pattern "--display-font:\"Space Grotesk\"") presetThemeStyles)
   assert "preset theme should switch the hero spacing variable" (contains (Pattern "--hero-padding:2.25rem") presetThemeStyles)
   assert "preset theme should switch the frame width" (contains (Pattern "--frame-width:76rem") presetThemeStyles)
   assert "preset theme should switch the pill radius" (contains (Pattern "--pill-radius:1rem") presetThemeStyles)
@@ -203,9 +203,10 @@ main = do
   emitLocalizedSite localizedOutputDirectory officialTheme officialLocalizedSite
   emittedLocalizedJaHome <- readTextFile (localizedOutputDirectory <> "/ja/index.html")
   emittedLocalizedJaStylesheet <- readTextFile (localizedOutputDirectory <> "/ja/assets/portico.css")
-  assert "emitted localized japanese home should contain translated copy" (contains (Pattern "PureScript で公開静的サイトを構築する。") emittedLocalizedJaHome)
+  assert "emitted localized japanese home should contain translated copy" (contains (Pattern "PureScriptで、公開サイトをつくる。") emittedLocalizedJaHome)
   assert "emitted localized japanese home should contain alternate links" (contains (Pattern "href=\"../index.html\"") emittedLocalizedJaHome)
   assert "emitted localized japanese stylesheet should contain shared block styles" (contains (Pattern ".block-card") emittedLocalizedJaStylesheet)
+  assert "emitted localized japanese stylesheet should contain ja-specific typography rules" (contains (Pattern "html:lang(ja) .page-intro h1") emittedLocalizedJaStylesheet)
 
   assert "expected six pressure samples" (length sampleSites == 6)
   removeTree showcaseOutputDirectory

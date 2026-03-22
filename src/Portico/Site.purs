@@ -287,18 +287,18 @@ englishSiteLabels =
 japaneseSiteLabels :: SiteLabels
 japaneseSiteLabels =
   { skipToContent: "本文へ移動"
-  , primaryNavigation: "主要ナビゲーション"
-  , localeNavigation: "言語"
+  , primaryNavigation: "主要メニュー"
+  , localeNavigation: "言語切替"
   , openLink: "開く"
-  , landingKind: "案内"
-  , documentationKind: "ドキュメント"
+  , landingKind: "トップ"
+  , documentationKind: "ガイド"
   , articleKind: "記事"
   , releaseNotesKind: "リリースノート"
-  , showcaseKind: "ショーケース"
-  , micrositeKind: "マイクロサイト"
+  , showcaseKind: "作例"
+  , micrositeKind: "特設サイト"
   , profileKind: "プロフィール"
   , noteCallout: "補足"
-  , highlightCallout: "要点"
+  , highlightCallout: "注目"
   , importantCallout: "重要"
   }
 
