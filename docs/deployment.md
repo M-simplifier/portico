@@ -5,7 +5,7 @@ Portico now has two different public-site build modes:
 - `npm run build:site`
   Local/public-site build without forcing a canonical base URL. Useful for preview and dogfooding.
 - `npm run build:pages`
-  GitHub Pages-oriented build. This injects `PORTICO_BASE_URL`, emits canonical URLs for the official site, mounted sample lab, and samples, and writes `sitemap.xml`, `robots.txt`, and `404.html`.
+  GitHub Pages-oriented build. This injects `PORTICO_BASE_URL`, emits canonical URLs for the official site, localized official-site variants, mounted sample lab, and samples, and writes `sitemap.xml`, `robots.txt`, and `404.html`.
 
 ## GitHub Pages
 
@@ -45,9 +45,13 @@ PORTICO_BASE_URL=https://portico.example.com/
 The public build now emits:
 
 - `index.html` and the rest of the official site
+- `ja/...` for the Japanese official-site variant
 - `lab/index.html` and `lab/presets.html`
 - `samples/...`
 - `assets/portico.css`
+- `ja/assets/portico.css`
 - `404.html`
 - `robots.txt`
 - `sitemap.xml` when a base URL is available
+
+When a base URL is available, the localized official-site pages also emit `hreflang` alternates so the Pages output stays static-first without falling back to client-side locale swapping.

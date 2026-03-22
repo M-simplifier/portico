@@ -1,5 +1,9 @@
 module Portico.Site
-  ( Site
+  ( Locale
+  , LocalizedSite
+  , LocalizedVariant
+  , Site
+  , SiteLabels
   , LinkTarget(..)
   , AssetTarget(..)
   , NavItem
@@ -19,10 +23,20 @@ module Portico.Site
   , Callout
   , CalloutTone(..)
   , LinkCard
+  , locale
+  , localeCode
+  , englishLocale
+  , japaneseLocale
+  , englishSiteLabels
+  , japaneseSiteLabels
+  , localizedSite
+  , localizedVariant
   , site
   , withBaseUrl
   , withDescription
   , withDefaultSocialImage
+  , withLocale
+  , withSiteLabels
   , withNavigation
   , navItem
   , siteNavItem
@@ -30,8 +44,10 @@ module Portico.Site
   , slugNavItem
   , pageNavItem
   , page
+  , pageKey
   , slugPath
   , pagePath
+  , withPageKey
   , withSocialImage
   , withSummary
   , section
@@ -63,13 +79,50 @@ import Prelude
 
 import Data.Maybe (Maybe(..))
 
+newtype Locale
+  = Locale String
+
+derive instance eqLocale :: Eq Locale
+derive instance ordLocale :: Ord Locale
+
+type SiteLabels =
+  { skipToContent :: String
+  , primaryNavigation :: String
+  , localeNavigation :: String
+  , openLink :: String
+  , landingKind :: String
+  , documentationKind :: String
+  , articleKind :: String
+  , releaseNotesKind :: String
+  , showcaseKind :: String
+  , micrositeKind :: String
+  , profileKind :: String
+  , noteCallout :: String
+  , highlightCallout :: String
+  , importantCallout :: String
+  }
+
 type Site =
   { title :: String
   , description :: Maybe String
   , baseUrl :: Maybe String
   , socialImage :: Maybe AssetTarget
+  , locale :: Maybe Locale
+  , labels :: SiteLabels
   , navigation :: Array NavItem
   , pages :: Array Page
+  }
+
+type LocalizedVariant =
+  { locale :: Locale
+  , label :: String
+  , mountPath :: String
+  , site :: Site
+  }
+
+type LocalizedSite =
+  { defaultLocale :: Locale
+  , variants :: Array LocalizedVariant
   }
 
 data LinkTarget
@@ -98,7 +151,8 @@ data PageKind
   | CustomKind String
 
 type Page =
-  { slug :: String
+  { key :: String
+  , slug :: String
   , kind :: PageKind
   , title :: String
   , summary :: Maybe String
@@ -197,12 +251,79 @@ data Block
   | CalloutBlock Callout
   | LinkGridBlock (Array LinkCard)
 
+locale :: String -> Locale
+locale =
+  Locale
+
+localeCode :: Locale -> String
+localeCode (Locale currentLocale) = currentLocale
+
+englishLocale :: Locale
+englishLocale =
+  Locale "en"
+
+japaneseLocale :: Locale
+japaneseLocale =
+  Locale "ja"
+
+englishSiteLabels :: SiteLabels
+englishSiteLabels =
+  { skipToContent: "Skip to content"
+  , primaryNavigation: "Primary"
+  , localeNavigation: "Languages"
+  , openLink: "Open"
+  , landingKind: "Landing"
+  , documentationKind: "Documentation"
+  , articleKind: "Article"
+  , releaseNotesKind: "Release notes"
+  , showcaseKind: "Showcase"
+  , micrositeKind: "Microsite"
+  , profileKind: "Profile"
+  , noteCallout: "Note"
+  , highlightCallout: "Highlight"
+  , importantCallout: "Important"
+  }
+
+japaneseSiteLabels :: SiteLabels
+japaneseSiteLabels =
+  { skipToContent: "本文へ移動"
+  , primaryNavigation: "主要ナビゲーション"
+  , localeNavigation: "言語"
+  , openLink: "開く"
+  , landingKind: "案内"
+  , documentationKind: "ドキュメント"
+  , articleKind: "記事"
+  , releaseNotesKind: "リリースノート"
+  , showcaseKind: "ショーケース"
+  , micrositeKind: "マイクロサイト"
+  , profileKind: "プロフィール"
+  , noteCallout: "補足"
+  , highlightCallout: "要点"
+  , importantCallout: "重要"
+  }
+
+localizedSite :: Locale -> Array LocalizedVariant -> LocalizedSite
+localizedSite defaultLocale variants =
+  { defaultLocale
+  , variants
+  }
+
+localizedVariant :: Locale -> String -> String -> Site -> LocalizedVariant
+localizedVariant currentLocale label mountPath currentSite =
+  { locale: currentLocale
+  , label
+  , mountPath
+  , site: withLocale currentLocale currentSite
+  }
+
 site :: String -> Array Page -> Site
 site title pages =
   { title
   , description: Nothing
   , baseUrl: Nothing
   , socialImage: Nothing
+  , locale: Nothing
+  , labels: englishSiteLabels
   , navigation: []
   , pages
   }
@@ -218,6 +339,14 @@ withDescription description current =
 withDefaultSocialImage :: AssetTarget -> Site -> Site
 withDefaultSocialImage socialImage current =
   current { socialImage = Just socialImage }
+
+withLocale :: Locale -> Site -> Site
+withLocale currentLocale current =
+  current { locale = Just currentLocale }
+
+withSiteLabels :: SiteLabels -> Site -> Site
+withSiteLabels labels current =
+  current { labels = labels }
 
 withNavigation :: Array NavItem -> Site -> Site
 withNavigation navigation current =
@@ -247,13 +376,17 @@ pageNavItem label currentPage =
 
 page :: String -> PageKind -> String -> Array Section -> Page
 page slug kind title sections =
-  { slug
+  { key: slug
+  , slug
   , kind
   , title
   , summary: Nothing
   , socialImage: Nothing
   , sections
   }
+
+pageKey :: Page -> String
+pageKey currentPage = currentPage.key
 
 slugPath :: String -> String
 slugPath slug =
@@ -268,6 +401,10 @@ pagePath currentPage = slugPath currentPage.slug
 slugNavItem :: String -> String -> NavItem
 slugNavItem label slug =
   siteNavItem label (slugPath slug)
+
+withPageKey :: String -> Page -> Page
+withPageKey key current =
+  current { key = key }
 
 withSummary :: String -> Page -> Page
 withSummary summary current =

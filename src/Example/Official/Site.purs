@@ -403,6 +403,7 @@ officialSite =
             [ FeatureGridBlock
                 [ feature "Validator first" "Check for missing index pages, duplicate paths, broken internal routes, weak summaries, and misplaced heroes before publish."
                 , feature "Metadata from the model" "Canonical, OG, and Twitter tags are derived from site and page values instead of raw head markup."
+                , feature "Localized bundles" "Localized site variants can emit real `lang`, language-switch routes, and `hreflang` alternates without turning the site into a client-side app."
                 , feature "Static output" "Emit files that stay subpath-safe under nested routes, shared CSS assets, and mounted collections."
                 , feature "Pages-ready files" "GitHub Pages-style output can include `404.html`, `robots.txt`, and `sitemap.xml` without polluting the semantic site DSL."
                 ]
@@ -412,19 +413,21 @@ officialSite =
             [ TimelineBlock
                 [ timelineEntry "Render" "Use `renderSite` for quick inspection or inline previews while the page model is still moving." Nothing
                 , timelineEntry "Validate" "Use `validateSite` as the publishability gate before treating a site definition as release-ready." Nothing
-                , timelineEntry "Emit" "Use `emitSite` or `emitMountedSite` once the surface is ready for static hosting output." Nothing
+                , timelineEntry "Localize" "Group locale variants into one static bundle when the public site needs language switching without runtime-heavy state." Nothing
+                , timelineEntry "Emit" "Use `emitSite`, `emitMountedSite`, or `emitLocalizedSite` once the surface is ready for static hosting output." Nothing
                 , timelineEntry "Publish" "Add a base URL and deploy-oriented files once the site is meant to behave like a real public artifact." Nothing
                 ]
             , CodeBlock
                 (codeSample
-                  "import Portico\n\nreport = validateSite siteDefinition\nsiteHasErrors = hasErrors siteDefinition\n\nmain =\n  emitSite \"site/dist\" officialTheme siteDefinition"
+                  "import Portico\n\nreport = validateLocalizedSite localizedDefinition\nsiteHasErrors = hasLocalizedErrors localizedDefinition\n\nmain =\n  emitLocalizedSite \"site/dist\" officialTheme localizedDefinition"
                   (Just "purescript")
-                  (Just "Validation before emission"))
+                  (Just "Validation before emitting a localized bundle"))
             ]
         , namedSection
             "Common questions"
             [ FaqBlock
                 [ faqEntry "Do I need a base URL to render?" "No. Base URLs matter when you want canonical and social metadata, not when you are still previewing locally."
+                , faqEntry "Can Portico localize a static site?" "Yes. The supported path is static-first: emit multiple locale variants as real pages, keep language switching link-based, and let the build layer handle `lang` plus alternate metadata."
                 , faqEntry "Should I hand-write relative links?" "Prefer route helpers and mounted collection helpers so nested output stays coherent."
                 , faqEntry "What is the release-oriented repo check?" "Use `npm run verify`. It composes tests with standalone sample-lab, official-site, and GitHub Pages-style build output."
                 , faqEntry "Is Portico trying to be a static CMS?" "No. The target is authored static surfaces with strong information architecture, not content-management tooling."
@@ -453,7 +456,7 @@ officialSite =
             [ FeatureGridBlock
                 [ feature "Typed site model" "Site, page, section, navigation, route, and block vocabulary are already in place for published static surfaces."
                 , feature "Official theme system" "The official preset path, layered customization, and preset catalog are all live."
-                , feature "Publishability and build" "Validation, canonical/social metadata, static emission, and GitHub Pages-style output are already part of the repo-first slice."
+                , feature "Publishability and build" "Validation, canonical/social metadata, static emission, localized bundles, and GitHub Pages-style output are already part of the repo-first slice."
                 , feature "Mounted proof surface" "The official site and broader sample lab now ship side by side as the public onboarding surface."
                 ]
             ]

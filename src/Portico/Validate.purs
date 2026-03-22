@@ -4,9 +4,14 @@ module Portico.Validate
   , ValidationReport
   , ValidationSeverity(..)
   , hasErrors
+  , hasLocalizedErrors
+  , localizedSiteDiagnostics
+  , localizedSiteErrors
+  , localizedSiteWarnings
   , siteDiagnostics
   , siteErrors
   , siteWarnings
+  , validateLocalizedSite
   , validateSite
   ) where
 
@@ -15,7 +20,7 @@ import Prelude
 import Data.Array as Array
 import Data.Foldable (foldMap)
 import Data.Maybe (Maybe(..))
-import Portico.Site (Block(..), LinkCard, LinkTarget(..), NavItem, Page, Section, Site, pagePath)
+import Portico.Site (Block(..), LinkCard, LinkTarget(..), LocalizedSite, LocalizedVariant, NavItem, Page, Section, Site, localeCode, pageKey, pagePath)
 
 data ValidationSeverity
   = ValidationError
@@ -29,6 +34,7 @@ data ValidationCode
   | MissingSiteDescription
   | MissingIndexPage
   | DuplicatePagePath
+  | DuplicatePageKey
   | EmptyNavigationLabel
   | EmptyPageTitle
   | MissingPageSummary
@@ -39,6 +45,10 @@ data ValidationCode
   | EmptyLinkLabel
   | BrokenInternalLink
   | NonLeadingHero
+  | DuplicateLocaleVariant
+  | MissingDefaultLocaleVariant
+  | SiteLocaleMismatch
+  | MissingLocalizedPage
 
 derive instance eqValidationCode :: Eq ValidationCode
 
@@ -46,6 +56,7 @@ type ValidationDiagnostic =
   { severity :: ValidationSeverity
   , code :: ValidationCode
   , message :: String
+  , locale :: Maybe String
   , pagePath :: Maybe String
   , sectionId :: Maybe String
   }
@@ -55,13 +66,21 @@ type ValidationReport =
   }
 
 type SiteValidator = Site -> Array ValidationDiagnostic
+type LocalizedSiteValidator = LocalizedSite -> Array ValidationDiagnostic
 
 validateSite :: Site -> ValidationReport
 validateSite currentSite =
   { diagnostics: foldMap (\validator -> validator currentSite) siteValidators }
 
+validateLocalizedSite :: LocalizedSite -> ValidationReport
+validateLocalizedSite currentLocalizedSite =
+  { diagnostics: foldMap (\validator -> validator currentLocalizedSite) localizedSiteValidators }
+
 siteDiagnostics :: Site -> Array ValidationDiagnostic
 siteDiagnostics = _.diagnostics <<< validateSite
+
+localizedSiteDiagnostics :: LocalizedSite -> Array ValidationDiagnostic
+localizedSiteDiagnostics = _.diagnostics <<< validateLocalizedSite
 
 siteErrors :: Site -> Array ValidationDiagnostic
 siteErrors currentSite =
@@ -71,9 +90,21 @@ siteWarnings :: Site -> Array ValidationDiagnostic
 siteWarnings currentSite =
   Array.filter (\diagnostic -> diagnostic.severity == ValidationWarning) (siteDiagnostics currentSite)
 
+localizedSiteErrors :: LocalizedSite -> Array ValidationDiagnostic
+localizedSiteErrors currentLocalizedSite =
+  Array.filter (\diagnostic -> diagnostic.severity == ValidationError) (localizedSiteDiagnostics currentLocalizedSite)
+
+localizedSiteWarnings :: LocalizedSite -> Array ValidationDiagnostic
+localizedSiteWarnings currentLocalizedSite =
+  Array.filter (\diagnostic -> diagnostic.severity == ValidationWarning) (localizedSiteDiagnostics currentLocalizedSite)
+
 hasErrors :: Site -> Boolean
 hasErrors =
   not <<< Array.null <<< siteErrors
+
+hasLocalizedErrors :: LocalizedSite -> Boolean
+hasLocalizedErrors =
+  not <<< Array.null <<< localizedSiteErrors
 
 siteValidators :: Array SiteValidator
 siteValidators =
@@ -102,7 +133,7 @@ validateSiteMetadata currentSite =
 
 validatePageInventory :: SiteValidator
 validatePageInventory currentSite =
-  emptySiteDiagnostic <> missingIndexPageDiagnostic <> duplicatePagePathDiagnostics
+  emptySiteDiagnostic <> missingIndexPageDiagnostic <> duplicatePagePathDiagnostics <> duplicatePageKeyDiagnostics
   where
   emptySiteDiagnostic =
     if Array.null currentSite.pages then
@@ -121,6 +152,12 @@ validatePageInventory currentSite =
       (\duplicatePath ->
         siteDiagnostic ValidationError DuplicatePagePath ("Multiple pages resolve to the same output path: " <> duplicatePath <> "."))
       (findDuplicateStrings (map pagePath currentSite.pages))
+
+  duplicatePageKeyDiagnostics =
+    map
+      (\duplicateKey ->
+        siteDiagnostic ValidationError DuplicatePageKey ("Multiple pages share the same localized page key: " <> duplicateKey <> "."))
+      (findDuplicateStrings (map pageKey currentSite.pages))
 
 validateSiteNavigation :: SiteValidator
 validateSiteNavigation currentSite =
@@ -248,6 +285,71 @@ sitePathExists :: String -> Site -> Boolean
 sitePathExists targetPath currentSite =
   Array.any (\currentPage -> pagePath currentPage == targetPath) currentSite.pages
 
+localizedSiteValidators :: Array LocalizedSiteValidator
+localizedSiteValidators =
+  [ validateLocalizedInventory
+  , validateLocalizedVariants
+  , validateLocalizedPageCoverage
+  ]
+
+validateLocalizedInventory :: LocalizedSiteValidator
+validateLocalizedInventory currentLocalizedSite =
+  duplicateLocaleDiagnostics <> missingDefaultLocaleDiagnostic
+  where
+  localeCodes =
+    map (localeCode <<< _.locale) currentLocalizedSite.variants
+
+  duplicateLocaleDiagnostics =
+    map
+      (\duplicateCode ->
+        localizedDiagnostic ValidationError DuplicateLocaleVariant ("Localized site defines the locale \"" <> duplicateCode <> "\" more than once."))
+      (findDuplicateStrings localeCodes)
+
+  missingDefaultLocaleDiagnostic =
+    if Array.any (\currentVariant -> currentVariant.locale == currentLocalizedSite.defaultLocale) currentLocalizedSite.variants then
+      []
+    else
+      [ localizedDiagnostic ValidationError MissingDefaultLocaleVariant ("Localized site is missing its default locale variant: " <> localeCode currentLocalizedSite.defaultLocale <> ".") ]
+
+validateLocalizedVariants :: LocalizedSiteValidator
+validateLocalizedVariants currentLocalizedSite =
+  foldMap validateLocalizedVariant currentLocalizedSite.variants
+
+validateLocalizedVariant :: LocalizedVariant -> Array ValidationDiagnostic
+validateLocalizedVariant currentVariant =
+  map (withDiagnosticLocale currentVariant) (siteDiagnostics currentVariant.site)
+    <> siteLocaleMismatchDiagnostic
+  where
+  siteLocaleMismatchDiagnostic =
+    case currentVariant.site.locale of
+      Just siteLocale | siteLocale == currentVariant.locale ->
+        []
+      _ ->
+        [ localizedDiagnosticFor currentVariant ValidationError SiteLocaleMismatch ("Localized variant \"" <> localeCode currentVariant.locale <> "\" must carry the same site locale metadata.") ]
+
+validateLocalizedPageCoverage :: LocalizedSiteValidator
+validateLocalizedPageCoverage currentLocalizedSite =
+  let
+    pageKeys =
+      uniqueStrings (foldMap (\currentVariant -> map pageKey currentVariant.site.pages) currentLocalizedSite.variants)
+  in
+    foldMap (missingLocalizedPageDiagnostics pageKeys) currentLocalizedSite.variants
+
+missingLocalizedPageDiagnostics :: Array String -> LocalizedVariant -> Array ValidationDiagnostic
+missingLocalizedPageDiagnostics pageKeys currentVariant =
+  foldMap
+    (\currentPageKey ->
+      if localizedVariantHasPageKey currentPageKey currentVariant then
+        []
+      else
+        [ localizedDiagnosticFor currentVariant ValidationWarning MissingLocalizedPage ("Localized variant \"" <> localeCode currentVariant.locale <> "\" is missing a page for localized page key \"" <> currentPageKey <> "\".") ]
+    )
+    pageKeys
+
+localizedVariantHasPageKey :: String -> LocalizedVariant -> Boolean
+localizedVariantHasPageKey currentPageKey currentVariant =
+  Array.any (\currentPage -> pageKey currentPage == currentPageKey) currentVariant.site.pages
+
 findDuplicateStrings :: Array String -> Array String
 findDuplicateStrings =
   go [] []
@@ -268,6 +370,20 @@ findDuplicateStrings =
 arrayContains :: String -> Array String -> Boolean
 arrayContains currentValue =
   Array.any (_ == currentValue)
+
+uniqueStrings :: Array String -> Array String
+uniqueStrings =
+  go []
+  where
+  go uniqueValues remaining =
+    case Array.uncons remaining of
+      Nothing ->
+        uniqueValues
+      Just { head, tail } ->
+        if arrayContains head uniqueValues then
+          go uniqueValues tail
+        else
+          go (uniqueValues <> [ head ]) tail
 
 hasNonLeadingHero :: Page -> Boolean
 hasNonLeadingHero currentPage =
@@ -299,18 +415,40 @@ hasNonLeadingHero currentPage =
 
 siteDiagnostic :: ValidationSeverity -> ValidationCode -> String -> ValidationDiagnostic
 siteDiagnostic severity code message =
+  siteDiagnosticWithLocale Nothing severity code message
+
+siteDiagnosticWithLocale :: Maybe String -> ValidationSeverity -> ValidationCode -> String -> ValidationDiagnostic
+siteDiagnosticWithLocale currentLocale severity code message =
   { severity
   , code
   , message
+  , locale: currentLocale
   , pagePath: Nothing
   , sectionId: Nothing
   }
 
 pageDiagnostic :: ValidationSeverity -> ValidationCode -> String -> Maybe String -> String -> ValidationDiagnostic
 pageDiagnostic severity code currentPagePath currentSectionId message =
+  pageDiagnosticWithLocale Nothing severity code currentPagePath currentSectionId message
+
+pageDiagnosticWithLocale :: Maybe String -> ValidationSeverity -> ValidationCode -> String -> Maybe String -> String -> ValidationDiagnostic
+pageDiagnosticWithLocale currentLocale severity code currentPagePath currentSectionId message =
   { severity
   , code
   , message
+  , locale: currentLocale
   , pagePath: Just currentPagePath
   , sectionId: currentSectionId
   }
+
+localizedDiagnostic :: ValidationSeverity -> ValidationCode -> String -> ValidationDiagnostic
+localizedDiagnostic =
+  siteDiagnosticWithLocale Nothing
+
+localizedDiagnosticFor :: LocalizedVariant -> ValidationSeverity -> ValidationCode -> String -> ValidationDiagnostic
+localizedDiagnosticFor currentVariant severity code message =
+  siteDiagnosticWithLocale (Just (localeCode currentVariant.locale)) severity code message
+
+withDiagnosticLocale :: LocalizedVariant -> ValidationDiagnostic -> ValidationDiagnostic
+withDiagnosticLocale currentVariant diagnostic =
+  diagnostic { locale = Just (localeCode currentVariant.locale) }

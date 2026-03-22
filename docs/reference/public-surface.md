@@ -11,13 +11,13 @@ That root module is the intended public surface while the site vocabulary, theme
 ## Current Families
 
 - `Portico.Site`
-  Site, page, section, block, navigation, link, and publish-time metadata primitives.
+  Site, page, section, block, navigation, link, publish-time metadata, and localized-site primitives.
 - `Portico.Build`
-  Static file emission helpers such as `emitSite` and `emitMountedSite`.
+  Static file emission helpers such as `emitSite`, `emitMountedSite`, and `emitLocalizedSite`.
 - `Portico.Render`
-  Pure render helpers such as `renderSite`, `renderStaticSite`, `renderPage`, and `renderStylesheet`.
+  Pure render helpers such as `renderSite`, `renderStaticSite`, `renderLocalizedSite`, `renderPage`, and `renderStylesheet`.
 - `Portico.Validate`
-  Publishability diagnostics such as `validateSite`, `siteDiagnostics`, and `hasErrors`.
+  Publishability diagnostics such as `validateSite`, `validateLocalizedSite`, `siteDiagnostics`, and `hasErrors`.
 - `Portico.Theme`
   Theme tokens and layered customization helpers.
 - `Portico.Theme.Official`
@@ -30,6 +30,7 @@ That root module is the intended public surface while the site vocabulary, theme
 - Prefer route helpers over hand-written internal `href` values.
 - Use mounted collection helpers when a site needs to link back into a larger static output tree.
 - Run `validateSite` before you treat a site definition as publishable.
+- Prefer localized site bundles over client-side copy swapping when a public site needs multiple languages.
 
 ## Still Moving
 
@@ -38,4 +39,5 @@ These areas are still expected to move during pre-beta:
 - the exact semantic block vocabulary
 - validator depth and diagnostics coverage
 - the asset story beyond the first shared stylesheet
+- the localized-site validator depth and localized build ergonomics
 - the long-term package split and package metadata

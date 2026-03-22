@@ -8,10 +8,11 @@ import Data.Maybe (Maybe(..))
 import Data.String (Pattern(..), contains)
 import Effect (Effect)
 import Effect.Exception (throw)
+import Example.Official.LocalizedSite (officialLocalizedSite)
 import Example.Official.PublicSite (buildPublicSite, buildPublicSiteWithConfig)
 import Example.Official.Site (officialSite)
 import Example.Official.Showcase (buildShowcase, sampleSites, showcaseSite)
-import Portico (AssetTarget(..), Block(..), OfficialPreset(..), PageKind(..), RenderedPage, Site, ValidationCode(..), ValidationDiagnostic, ValidationSeverity(..), defaultStylesheetPath, emitSite, hero, namedSection, officialTheme, officialThemeOptions, officialThemeWith, officialThemeWithAccent, officialThemeWithPalette, officialThemeWithPreset, page, renderSite, renderStaticSite, renderStylesheet, site, siteDiagnostics, siteNavItem, slugLinkCard, validateSite, withBaseUrl, withDefaultSocialImage, withDescription, withNavigation, withSectionId, withSocialImage, withSummary)
+import Portico (AssetTarget(..), Block(..), LocalizedSite, OfficialPreset(..), PageKind(..), RenderedPage, Site, ValidationCode(..), ValidationDiagnostic, ValidationSeverity(..), defaultStylesheetPath, emitLocalizedSite, emitSite, englishLocale, hasLocalizedErrors, hero, japaneseLocale, japaneseSiteLabels, localizedSite, localizedSiteDiagnostics, localizedVariant, namedSection, officialTheme, officialThemeOptions, officialThemeWith, officialThemeWithAccent, officialThemeWithPalette, officialThemeWithPreset, page, renderLocalizedSite, renderSite, renderStaticSite, renderStylesheet, site, siteDiagnostics, siteNavItem, slugLinkCard, validateLocalizedSite, validateSite, withBaseUrl, withDefaultSocialImage, withDescription, withNavigation, withSectionId, withSiteLabels, withSocialImage, withSummary)
 import Partial.Unsafe (unsafeCrashWith)
 import Test.Support.FileSystem (pathExists, readTextFile, removeTree)
 
@@ -20,6 +21,7 @@ main = do
   let
     renderedPages = renderSite officialTheme officialSite
     renderedStaticSite = renderStaticSite defaultStylesheetPath officialTheme officialSite
+    localizedRenderedSite = renderLocalizedSite defaultStylesheetPath officialTheme officialLocalizedSite
     metadataRenderedPages = renderSite officialTheme metadataSite
     accentThemeStyles = renderStylesheet (officialThemeWithAccent "#c2410c")
     presetThemeStyles = renderStylesheet (officialThemeWithPreset NightCircuit)
@@ -49,9 +51,12 @@ main = do
           , border: "#ead9c8"
           })
     officialDiagnostics = siteDiagnostics officialSite
+    localizedDiagnostics = localizedSiteDiagnostics officialLocalizedSite
     showcaseDiagnostics = siteDiagnostics showcaseSite
     invalidDiagnostics = (validateSite invalidSite).diagnostics
+    invalidLocalizedDiagnostics = (validateLocalizedSite invalidLocalizedSite).diagnostics
     outputDirectory = "/tmp/portico-test-output"
+    localizedOutputDirectory = "/tmp/portico-localized-output"
     showcaseOutputDirectory = "/tmp/portico-showcase-output"
     publicOutputDirectory = "/tmp/portico-public-output"
     pagesOutputDirectory = "/tmp/portico-pages-output"
@@ -86,6 +91,16 @@ main = do
   assert "release copy should render" (contains (Pattern "Portico is in public pre-beta") releasePage.html)
   assert "theme styles should render" (contains (Pattern "--accent:#0f766e") homePage.html)
   assert "inline render should include a style tag" (contains (Pattern "<style>") homePage.html)
+  let
+    localizedHomePage = expectRenderedPage "index.html" localizedRenderedSite.pages
+    localizedJaHomePage = expectRenderedPage "ja/index.html" localizedRenderedSite.pages
+    localizedJaGuidePage = expectRenderedPage "ja/guide/getting-started.html" localizedRenderedSite.pages
+  assert "localized render should expose one stylesheet per locale mount" (length localizedRenderedSite.assets == 2)
+  assert "localized english page should link to japanese alternate relatively" (contains (Pattern "href=\"ja/index.html\"") localizedHomePage.html)
+  assert "localized japanese page should set the html lang" (contains (Pattern "<html lang=\"ja\">") localizedJaHomePage.html)
+  assert "localized japanese page should expose japanese skip-link copy" (contains (Pattern "本文へ移動") localizedJaHomePage.html)
+  assert "localized japanese page should link back to english home relatively" (contains (Pattern "href=\"../index.html\"") localizedJaHomePage.html)
+  assert "localized japanese guide should keep sample-lab links relative across locale mount" (contains (Pattern "href=\"../../lab/index.html\"") localizedJaGuidePage.html)
 
   assert "static render should expose one shared asset" (length renderedStaticSite.assets == 1)
   case metadataRenderedPages of
@@ -140,10 +155,12 @@ main = do
   assert "palette override should set the background variable" (contains (Pattern "--background:#fff8ef") paletteThemeStyles)
   assert "palette override should set the accent variable" (contains (Pattern "--accent:#c05621") paletteThemeStyles)
   assert "official docs site should validate cleanly" (Array.null officialDiagnostics)
+  assert "localized official site should validate cleanly" (Array.null localizedDiagnostics)
   assert "showcase root should validate cleanly" (Array.null showcaseDiagnostics)
   assert "all pressure samples should validate cleanly" (Array.all (\sampleSite -> Array.null (siteDiagnostics sampleSite.site)) sampleSites)
   assert "invalid site should report missing index page" (hasDiagnostic ValidationError MissingIndexPage invalidDiagnostics)
   assert "invalid site should report duplicate page paths" (hasDiagnostic ValidationError DuplicatePagePath invalidDiagnostics)
+  assert "invalid site should report duplicate page keys" (hasDiagnostic ValidationError DuplicatePageKey invalidDiagnostics)
   assert "invalid site should report empty navigation labels" (hasDiagnostic ValidationError EmptyNavigationLabel invalidDiagnostics)
   assert "invalid site should report broken navigation" (hasDiagnostic ValidationError BrokenSiteNavigation invalidDiagnostics)
   assert "invalid site should report empty link labels" (hasDiagnostic ValidationError EmptyLinkLabel invalidDiagnostics)
@@ -153,6 +170,8 @@ main = do
   assert "invalid site should warn on missing page summaries" (hasDiagnostic ValidationWarning MissingPageSummary invalidDiagnostics)
   assert "invalid site should warn on non-leading hero placement" (hasDiagnostic ValidationWarning NonLeadingHero invalidDiagnostics)
   assert "invalid site should warn on empty page sections" (hasDiagnostic ValidationWarning EmptyPageSections invalidDiagnostics)
+  assert "invalid localized site should warn on missing localized pages" (hasDiagnostic ValidationWarning MissingLocalizedPage invalidLocalizedDiagnostics)
+  assert "invalid localized site should not be considered clean" (hasLocalizedErrors invalidLocalizedSite == false)
 
   removeTree outputDirectory
   emitSite outputDirectory officialTheme officialSite
@@ -179,6 +198,14 @@ main = do
   assert "emitted guide page should link the shared stylesheet" (contains (Pattern "href=\"../assets/portico.css\"") emittedGuide)
   assert "emitted stylesheet should contain shared block styles" (contains (Pattern ".block-card") emittedStylesheet)
   assert "emitted guide page should link home relatively" (contains (Pattern "href=\"../index.html\"") emittedGuide)
+
+  removeTree localizedOutputDirectory
+  emitLocalizedSite localizedOutputDirectory officialTheme officialLocalizedSite
+  emittedLocalizedJaHome <- readTextFile (localizedOutputDirectory <> "/ja/index.html")
+  emittedLocalizedJaStylesheet <- readTextFile (localizedOutputDirectory <> "/ja/assets/portico.css")
+  assert "emitted localized japanese home should contain translated copy" (contains (Pattern "PureScript で公開静的サイトを構築する。") emittedLocalizedJaHome)
+  assert "emitted localized japanese home should contain alternate links" (contains (Pattern "href=\"../index.html\"") emittedLocalizedJaHome)
+  assert "emitted localized japanese stylesheet should contain shared block styles" (contains (Pattern ".block-card") emittedLocalizedJaStylesheet)
 
   assert "expected six pressure samples" (length sampleSites == 6)
   removeTree showcaseOutputDirectory
@@ -261,12 +288,17 @@ main = do
   buildPublicSite publicOutputDirectory
   publicHome <- readTextFile (publicOutputDirectory <> "/index.html")
   publicGuide <- readTextFile (publicOutputDirectory <> "/guide/getting-started.html")
+  publicJaHome <- readTextFile (publicOutputDirectory <> "/ja/index.html")
+  publicJaGuide <- readTextFile (publicOutputDirectory <> "/ja/guide/getting-started.html")
   publicLabHome <- readTextFile (publicOutputDirectory <> "/lab/index.html")
   publicLabPresets <- readTextFile (publicOutputDirectory <> "/lab/presets.html")
   publicSampleHome <- readTextFile (publicOutputDirectory <> "/samples/northstar-cloud/index.html")
   publicSampleNested <- readTextFile (publicOutputDirectory <> "/samples/mina-arai/work/harbor-clinic.html")
   assert "public home should use the official site root" (contains (Pattern "Build published static sites in PureScript.") publicHome)
   assert "public guide should link back to the sample lab relatively" (contains (Pattern "href=\"../lab/index.html\"") publicGuide)
+  assert "public japanese home should exist under /ja" (contains (Pattern "<html lang=\"ja\">") publicJaHome)
+  assert "public japanese home should link back to english root" (contains (Pattern "href=\"../index.html\"") publicJaHome)
+  assert "public japanese guide should keep sample-lab links relative" (contains (Pattern "href=\"../../lab/index.html\"") publicJaGuide)
   assert "public lab should link back to the official site" (contains (Pattern "href=\"../index.html\">Official Site</a>") publicLabHome)
   assert "public lab should keep the preset catalog local to the mounted lab" (contains (Pattern "href=\"presets.html\"") publicLabHome)
   assert "public preset catalog should link to root-mounted samples" (contains (Pattern "href=\"../samples/signal-summit/index.html\"") publicLabPresets)
@@ -278,20 +310,27 @@ main = do
   removeTree pagesOutputDirectory
   buildPublicSiteWithConfig { baseUrl: Just "https://masaya.github.io/portico/" } pagesOutputDirectory
   pagesHome <- readTextFile (pagesOutputDirectory <> "/index.html")
+  pagesJaHome <- readTextFile (pagesOutputDirectory <> "/ja/index.html")
   pagesLab <- readTextFile (pagesOutputDirectory <> "/lab/index.html")
   pagesSample <- readTextFile (pagesOutputDirectory <> "/samples/northstar-cloud/index.html")
   pages404 <- readTextFile (pagesOutputDirectory <> "/404.html")
   pagesRobots <- readTextFile (pagesOutputDirectory <> "/robots.txt")
   pagesSitemap <- readTextFile (pagesOutputDirectory <> "/sitemap.xml")
   assert "pages build should emit a canonical url on the official home page" (contains (Pattern "rel=\"canonical\" href=\"https://masaya.github.io/portico/index.html\"") pagesHome)
+  assert "pages build should emit a canonical url on the japanese home page" (contains (Pattern "rel=\"canonical\" href=\"https://masaya.github.io/portico/ja/index.html\"") pagesJaHome)
+  assert "pages build should emit hreflang alternates on the official home page" (contains (Pattern "hreflang=\"ja\" href=\"https://masaya.github.io/portico/ja/index.html\"") pagesHome)
+  assert "pages build should emit hreflang alternates on the japanese home page" (contains (Pattern "hreflang=\"en\" href=\"https://masaya.github.io/portico/index.html\"") pagesJaHome)
   assert "pages build should emit a canonical url on the mounted sample lab" (contains (Pattern "rel=\"canonical\" href=\"https://masaya.github.io/portico/lab/index.html\"") pagesLab)
   assert "pages build should emit a canonical url on mounted sample pages" (contains (Pattern "rel=\"canonical\" href=\"https://masaya.github.io/portico/samples/northstar-cloud/index.html\"") pagesSample)
   assert "pages build should emit a dedicated 404 page" (contains (Pattern "This route does not exist.") pages404)
   assert "pages build should link the 404 page back to the mounted sample lab" (contains (Pattern "href=\"lab/index.html\"") pages404)
+  assert "pages build should link the 404 page to the japanese home" (contains (Pattern "href=\"ja/index.html\"") pages404)
   assert "pages build should emit robots.txt" (contains (Pattern "User-agent: *") pagesRobots)
   assert "pages build should include a sitemap reference in robots.txt" (contains (Pattern "Sitemap: https://masaya.github.io/portico/sitemap.xml") pagesRobots)
   assert "pages build should emit sitemap.xml" (contains (Pattern "<urlset") pagesSitemap)
   assert "pages build sitemap should include the official home page" (contains (Pattern "<loc>https://masaya.github.io/portico/index.html</loc>") pagesSitemap)
+  assert "pages build sitemap should include the japanese home page" (contains (Pattern "<loc>https://masaya.github.io/portico/ja/index.html</loc>") pagesSitemap)
+  assert "pages build sitemap should include alternate links for official pages" (contains (Pattern "hreflang=\"ja\" href=\"https://masaya.github.io/portico/ja/index.html\"") pagesSitemap)
   assert "pages build sitemap should include the mounted sample lab" (contains (Pattern "<loc>https://masaya.github.io/portico/lab/index.html</loc>") pagesSitemap)
   assert "pages build sitemap should include nested sample pages" (contains (Pattern "<loc>https://masaya.github.io/portico/samples/mina-arai/work/harbor-clinic.html</loc>") pagesSitemap)
 
@@ -345,6 +384,35 @@ invalidSite =
           ""
           []
       ])
+
+invalidLocalizedSite :: LocalizedSite
+invalidLocalizedSite =
+  localizedSite
+    englishLocale
+    [ localizedVariant englishLocale "English" "" officialSite
+    , localizedVariant
+        japaneseLocale
+        "日本語"
+        "ja"
+        (withSiteLabels
+          japaneseSiteLabels
+          (withDescription
+            "ローカライズの欠落を検証するための最小サイト。"
+            (site
+              "Portico"
+              [ withSummary
+                  "最小の日本語トップページ。"
+                  (page
+                    "index"
+                    Landing
+                    "Portico"
+                    [ namedSection
+                        "概要"
+                        [ HeroBlock (hero "静的サイトを localize する。" "この fixture は故意に一部ページを欠落させています。")
+                        ]
+                    ])
+              ])))
+    ]
 
 metadataSite :: Site
 metadataSite =

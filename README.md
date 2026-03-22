@@ -41,6 +41,7 @@ This repository currently establishes:
 - metric, timeline, code, image, people, quote, and FAQ blocks for pressure-tested site shapes
 - official theme presets plus accent/palette/typography overrides
 - canonical plus OG/Twitter metadata derived from the site/page model
+- localized site bundles with per-locale static routes, `lang`, and `hreflang` alternates
 - a Portico-built official site with the sample lab mounted alongside it
 - a GitHub Pages-ready public build path with `404.html`, `robots.txt`, and `sitemap.xml`
 - an MIT license for repo-first public evaluation
@@ -184,6 +185,25 @@ guidePage =
 
 With `withBaseUrl`, Portico emits canonical URLs plus `og:url`. With `withDefaultSocialImage` and `withSocialImage`, it can also emit `og:image` and `twitter:image` without pushing raw head markup back into the page model.
 
+If you want a localized static site, keep one full `Site` per locale and emit them together:
+
+```purescript
+import Portico
+
+localizedDefinition =
+  localizedSite
+    englishLocale
+    [ localizedVariant englishLocale "English" "" englishSite
+    , localizedVariant japaneseLocale "日本語" "ja" japaneseSite
+    ]
+
+main = do
+  let report = validateLocalizedSite localizedDefinition
+  emitLocalizedSite "site/dist" officialTheme localizedDefinition
+```
+
+That path stays static-first: each locale emits real pages, the renderer sets `lang`, and alternate pages can emit `hreflang` when a base URL is available. Language switching is meant to stay link-based, not to turn the site into a client-side app.
+
 For internal links, prefer `slugNavItem`, `slugLinkCard`, `pageNavItem`, or `pageLinkCard` over raw `href` strings. Those helpers let Portico render relative links correctly from nested pages.
 
 If you are emitting a site as part of a larger mounted collection, use `collectionLinkCard` / `collectionNavItem` with `emitMountedSite` so links can safely escape the current site mount without falling back to hand-written `../../..` paths.
@@ -221,6 +241,8 @@ The current official presets are intentionally directional rather than cosmetic 
 - `BlueLedger`: a narrower publication or notebook voice
 
 For verification, use `validateSite` before treating a site definition as publishable. The first validator pass checks things like missing `index.html`, duplicate page paths, empty navigation or link-card labels, broken internal `SitePath` links, duplicate section ids, missing summaries, and misplaced hero blocks.
+
+For localized bundles, use `validateLocalizedSite` and `hasLocalizedErrors`. That layer checks the per-locale site diagnostics too, and it can warn when one locale is missing a page that exists in another locale variant.
 
 `npm run build:example` builds the standalone pressure-test sample lab at `examples/official/dist`.
 

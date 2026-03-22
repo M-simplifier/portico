@@ -8,33 +8,39 @@ module Example.Official.PublicSite
 
 import Prelude
 
+import Data.Array as Array
 import Data.Foldable (foldMap, traverse_)
 import Data.Maybe (Maybe(..))
 import Example.Official.FileSystem (removeTree)
+import Example.Official.LocalizedSite (officialLocalizedSite)
 import Example.Official.Showcase (buildMountedShowcaseWithSiteTransform, mountedShowcasePaths, sampleSitesWithPaths, showcaseSiteWithPaths)
 import Example.Official.Site (officialSite)
 import Effect (Effect)
 import Portico
   ( Block(..)
-  , CalloutTone(..)
-  , Page
-  , PageKind(..)
-  , RenderedAsset
-  , Site
-  , callout
-  , collectionLinkCard
-  , emitRenderedAsset
-  , emitRenderedPage
-  , emitSite
-  , hero
-  , namedSection
-  , officialTheme
-  , page
-  , pagePath
-  , renderPage
-  , slugLinkCard
-  , withActions
-  , withBaseUrl
+    , CalloutTone(..)
+    , LocalizedSite
+    , LocalizedVariant
+    , Page
+    , PageKind(..)
+    , RenderedAsset
+    , Site
+    , callout
+    , collectionLinkCard
+    , emitLocalizedSite
+    , emitRenderedAsset
+    , emitRenderedPage
+    , hero
+    , localeCode
+    , namedSection
+    , officialTheme
+    , page
+    , pageKey
+    , pagePath
+    , renderPage
+    , slugLinkCard
+    , withActions
+    , withBaseUrl
   , withEyebrow
   , withSummary
   )
@@ -58,7 +64,7 @@ buildPublicSite =
 buildPublicSiteWithConfig :: PublicBuildConfig -> String -> Effect Unit
 buildPublicSiteWithConfig config outputDirectory = do
   removeTree outputDirectory
-  emitSite outputDirectory officialTheme (applyBuildConfig config officialSite)
+  emitLocalizedSite outputDirectory officialTheme (applyBuildConfigToLocalized config officialLocalizedSite)
   buildMountedShowcaseWithSiteTransform (applyBuildConfig config) outputDirectory "lab"
   emitRenderedPage outputDirectory (renderPage officialTheme (applyBuildConfig config officialSite) notFoundPage)
   traverse_ (emitRenderedAsset outputDirectory) (publishAssets config)
@@ -106,20 +112,95 @@ sitemapContent config =
   case config.baseUrl of
     Just baseUrl ->
       let
-        urls = map (absoluteUrl baseUrl) publicPagePaths
+        entries = publicSitemapEntries baseUrl
       in
         "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-          <> "<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n"
-          <> foldMap (\url -> "  <url><loc>" <> escapeXml url <> "</loc></url>\n") urls
+          <> "<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\" xmlns:xhtml=\"http://www.w3.org/1999/xhtml\">\n"
+          <> foldMap renderSitemapEntry entries
           <> "</urlset>\n"
     Nothing ->
       ""
 
-publicPagePaths :: Array String
-publicPagePaths =
-  pagePathsAtMount "" officialSite
-    <> pagePathsAtMount "lab" (showcaseSiteWithPaths (mountedShowcasePaths "lab"))
+type SitemapAlternate =
+  { lang :: String
+  , href :: String
+  }
+
+type SitemapEntry =
+  { loc :: String
+  , alternates :: Array SitemapAlternate
+  }
+
+publicSitemapEntries :: String -> Array SitemapEntry
+publicSitemapEntries baseUrl =
+  localizedSitemapEntries baseUrl officialLocalizedSite
+    <> map (simpleSitemapEntry baseUrl) sharedCollectionPaths
+
+sharedCollectionPaths :: Array String
+sharedCollectionPaths =
+  pagePathsAtMount "lab" (showcaseSiteWithPaths (mountedShowcasePaths "lab"))
     <> foldMap samplePagePaths (sampleSitesWithPaths (mountedShowcasePaths "lab"))
+
+simpleSitemapEntry :: String -> String -> SitemapEntry
+simpleSitemapEntry baseUrl urlPath =
+  { loc: absoluteUrl baseUrl urlPath
+  , alternates: []
+  }
+
+renderSitemapEntry :: SitemapEntry -> String
+renderSitemapEntry entry =
+  "  <url><loc>"
+    <> escapeXml entry.loc
+    <> "</loc>"
+    <> foldMap renderSitemapAlternate entry.alternates
+    <> "</url>\n"
+
+renderSitemapAlternate :: SitemapAlternate -> String
+renderSitemapAlternate alternate =
+  "<xhtml:link rel=\"alternate\" hreflang=\""
+    <> escapeXml alternate.lang
+    <> "\" href=\""
+    <> escapeXml alternate.href
+    <> "\"/>"
+
+localizedSitemapEntries :: String -> LocalizedSite -> Array SitemapEntry
+localizedSitemapEntries baseUrl currentLocalizedSite =
+  foldMap (localizedVariantEntries baseUrl currentLocalizedSite) currentLocalizedSite.variants
+
+localizedVariantEntries :: String -> LocalizedSite -> LocalizedVariant -> Array SitemapEntry
+localizedVariantEntries baseUrl currentLocalizedSite currentVariant =
+  map
+    (\currentPage ->
+      let
+        currentPath = mountedPath currentVariant.mountPath (pagePath currentPage)
+      in
+        { loc: absoluteUrl baseUrl currentPath
+        , alternates: localizedAlternates baseUrl currentLocalizedSite currentPage
+        })
+    currentVariant.site.pages
+
+localizedAlternates :: String -> LocalizedSite -> Page -> Array SitemapAlternate
+localizedAlternates baseUrl currentLocalizedSite currentPage =
+  foldMap
+    (\currentVariant ->
+      case localizedPagePath currentVariant currentPage of
+        Just outputPath ->
+          [ { lang: localeCode currentVariant.locale
+            , href: absoluteUrl baseUrl outputPath
+            }
+          ]
+        Nothing ->
+          []
+    )
+    currentLocalizedSite.variants
+
+localizedPagePath :: LocalizedVariant -> Page -> Maybe String
+localizedPagePath currentVariant currentPage =
+  case findPageByKey currentPage currentVariant.site of
+    Just localizedPage ->
+      Just (mountedPath currentVariant.mountPath (pagePath localizedPage))
+    Nothing ->
+      Nothing
 
 samplePagePaths :: forall r. { slug :: String, site :: Site | r } -> Array String
 samplePagePaths sampleSite =
@@ -129,11 +210,24 @@ pagePathsAtMount :: String -> Site -> Array String
 pagePathsAtMount mountPath currentSite =
   map (mountedPath mountPath <<< pagePath) currentSite.pages
 
+findPageByKey :: Page -> Site -> Maybe Page
+findPageByKey currentPage currentSite =
+  Array.find (\candidatePage -> pageKey candidatePage == pageKey currentPage) currentSite.pages
+
 applyBuildConfig :: PublicBuildConfig -> Site -> Site
 applyBuildConfig config currentSite =
   case config.baseUrl of
     Just baseUrl -> withBaseUrl baseUrl currentSite
     Nothing -> currentSite
+
+applyBuildConfigToLocalized :: PublicBuildConfig -> LocalizedSite -> LocalizedSite
+applyBuildConfigToLocalized config currentLocalizedSite =
+  currentLocalizedSite
+    { variants =
+        map
+          (\currentVariant -> currentVariant { site = applyBuildConfig config currentVariant.site })
+          currentLocalizedSite.variants
+    }
 
 notFoundPage :: Page
 notFoundPage =
@@ -148,6 +242,7 @@ notFoundPage =
           [ HeroBlock
               (withActions
                 [ slugLinkCard "Return to the official home" "index" (Just "Go back to the Portico front door.")
+                , collectionLinkCard "Open the Japanese home" "ja/index.html" (Just "Switch to the Japanese official site entry.")
                 , collectionLinkCard "Open the sample lab" "lab/index.html" (Just "Jump into the mounted chooser and sample surfaces.")
                 ]
                 (withEyebrow

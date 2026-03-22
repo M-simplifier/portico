@@ -56,6 +56,7 @@ The first useful implementation can stay pure:
 - render site values into full HTML documents
 - return output paths alongside rendered content
 - derive canonical and social metadata from site/page values instead of ad-hoc head markup
+- keep localized variants in the static build path, so multiple languages emit real pages instead of runtime-only copy switching
 - add filesystem emission only after the document shape settles
 
 The current shape can then add a thin build module:
@@ -63,6 +64,7 @@ The current shape can then add a thin build module:
 - `Portico.Build` takes rendered pages and writes them to disk
 - the first asset story can stay simple: one shared stylesheet plus relative page links
 - public metadata should stay tied to the site model through fields like base URL and social-image targets
+- localized bundles should stay tied to the site model too, including `lang`, alternate routes, and `hreflang` output
 - publish-time files such as `404.html`, `robots.txt`, and `sitemap.xml` can layer on top without polluting the semantic site DSL
 - example-site builders should stay small and declarative
 - richer asset pipelines can layer on later without changing the site model

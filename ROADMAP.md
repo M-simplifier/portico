@@ -20,6 +20,7 @@
 - add canonical plus OG/Twitter metadata helpers
 - add a first validation/diagnostic layer for publishability checks
 - add GitHub Pages-ready build output such as `404.html`, `robots.txt`, and `sitemap.xml`
+- add static-first multilingual publishing with locale bundles, real per-locale routes, and alternate metadata
 - support navigation, collections, article pages, and docs pages well
 - support code samples, callouts, feature grids, link grids, and release surfaces
 - introduce a small asset pipeline story
@@ -27,7 +28,7 @@
 ## Phase 3: Controlled Escape Hatches
 
 - support custom blocks without collapsing back into raw markup everywhere
-- define the boundary for light interaction and optional islands
+- define the boundary for light interaction and optional islands, keeping preference-grade enhancements separate from a generic client runtime
 - clarify future interop with Asterism where it makes sense
 
 ## Phase 4: Beta Prep
