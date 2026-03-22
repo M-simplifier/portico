@@ -175,10 +175,10 @@ officialSite =
                       "Build static sites with a real front door."
                       "Portico is a PureScript library for docs, project sites, release pages, portfolios, and editorial surfaces. Write site structure semantically, start from an official theme, validate before publish, and emit clean static output.")))
             , MetricsBlock
-                [ metric "Public happy path" "`Portico`" (Just "One import across site model, themes, render, validate, and build.")
-                , metric "Pressure-test samples" "6" (Just "Docs, product, portfolio, profile, event, and publication surfaces.")
-                , metric "Localized official site" "2 locales" (Just "English at the root and Japanese under /ja/.")
-                , metric "Release gate" "`npm run verify`" (Just "Checks tests, official-site builds, and GitHub Pages output.")
+                [ metric "`Portico`" "Public happy path" (Just "One import across site model, themes, render, validate, and build.")
+                , metric "6" "Pressure-tested surfaces" (Just "Docs, product, portfolio, profile, event, and publication surfaces.")
+                , metric "2 locales" "Localized official site" (Just "English at the root and Japanese under /ja/.")
+                , metric "`npm run verify`" "Release gate" (Just "Checks tests, official-site builds, and GitHub Pages output.")
                 ]
             , CodeBlock
                 (codeSample
@@ -306,7 +306,7 @@ officialSite =
                   (withEyebrow
                     "Authoring"
                     (hero
-                      "Go from one import to published pages."
+                      "Go from one import to a published site."
                       "Start from Portico, model the site semantically, choose an official theme, validate, and emit static output. The point is clarity, not ceremony.")))
             , TimelineBlock
                 [ timelineEntry "Import from `Portico`" "Start from the umbrella module so site, theme, render, validate, and build stay on one obvious path." Nothing
@@ -349,7 +349,7 @@ officialSite =
         (CustomKind "AI")
         "AI Workflow"
         [ namedSection
-            "Delegate the site, not the category boundary"
+            "Delegate the site, not the category"
             [ HeroBlock
                 (withActions
                   [ linkCard "Read the agent quickstart" githubAgentQuickstartHref (Just "The repo-first operational path for building with Portico.")
@@ -411,15 +411,15 @@ officialSite =
                   (withEyebrow
                     "Current contract"
                     (hero
-                      "These are the public module families today."
+                      "These are the public modules today."
                       "Portico is still pre-beta, but the current public surface is already organized around one import path and a static-site workflow.")))
             , FeatureGridBlock
-                [ feature "Portico.Site" "Site, page, section, block, navigation, linking, locale, and publish-time metadata primitives."
-                , feature "Portico.Build" "Static file emission helpers such as emitSite, emitMountedSite, and emitLocalizedSite."
-                , feature "Portico.Render" "Pure rendering helpers such as renderSite, renderStaticSite, renderPage, and renderStylesheet."
-                , feature "Portico.Validate" "Diagnostics such as validateSite, validateLocalizedSite, and the current publishability checks."
+                [ feature "Portico.Site" "Site, page, section, block, navigation, locale, and publish-time metadata primitives."
+                , feature "Portico.Build" "Static file emission helpers for single sites, mounted sites, and localized bundles."
+                , feature "Portico.Render" "Pure rendering helpers for pages, full sites, and shared stylesheets."
+                , feature "Portico.Validate" "Diagnostics for site structure, localization coverage, and publishability checks."
                 , feature "Portico.Theme" "Theme tokens and layered customization helpers."
-                , feature "Portico.Theme.Official" "Official presets and officialThemeWith for controlled customization."
+                , feature "Portico.Theme.Official" "Directional presets and officialThemeWith for controlled customization."
                 ]
             ]
         , namedSection
@@ -565,7 +565,7 @@ officialSite =
         ReleaseNotes
         "Release 0.1.0"
         [ namedSection
-            "Release 0.1.0"
+            "Current release"
             [ HeroBlock
                 (withActions
                   [ linkCard "Open GitHub" githubRepositoryHref (Just "Read the repo, changelog, and current issues.")
@@ -584,7 +584,7 @@ officialSite =
                 , feature "Dogfooded proof surface" "The official site and mounted sample lab are both emitted by Portico and used as the main public onboarding surface."
                 ]
             , CalloutBlock
-                (callout Strong "What this release means" "Portico is ready for serious evaluation from a local checkout. It is not yet promising the stability or packaging posture of a frozen registry release.")
+                (callout Strong "What this release means" "Portico is ready for serious evaluation from a local checkout. It is not yet promising registry-grade stability or packaging.")
             ]
         , namedSection
             "What shipped"
@@ -597,11 +597,11 @@ officialSite =
             ]
         , namedSection
             "Next"
-            [ TimelineBlock
-                [ timelineEntry "Richer validators" "Grow diagnostics beyond the first publishability baseline so the site model carries more release confidence." Nothing
-                , timelineEntry "A stronger asset story" "Move beyond the first shared stylesheet toward a fuller publish-time asset model." Nothing
-                , timelineEntry "Sharper official themes" "Keep improving the official visual defaults so Portico sites look more intentional out of the box." Nothing
-                , timelineEntry "More pressure from the lab" "Keep adding samples and refinements that expose weak spots in the site vocabulary." Nothing
+            [ FeatureGridBlock
+                [ feature "Richer validators" "Extend diagnostics beyond the first publishability baseline so release review carries more confidence."
+                , feature "A stronger asset story" "Move beyond one shared stylesheet toward a fuller publish-time asset model."
+                , feature "Sharper official themes" "Keep strengthening the defaults so Portico sites look intentional before customization."
+                , feature "More pressure from the lab" "Keep adding samples and refinements that expose weak spots in the site vocabulary."
                 ]
             , LinkGridBlock
                 [ linkCard "Read the release checklist" githubReleaseChecklistHref (Just "The current pre-beta release gate and publication checklist.")

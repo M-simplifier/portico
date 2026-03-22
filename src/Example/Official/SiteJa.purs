@@ -138,10 +138,10 @@ officialSiteJa =
                       "公開サイトの front door を、静的に組み立てる。"
                       "Portico は、ドキュメント、公式サイト、リリースページ、ポートフォリオ、読み物のための PureScript ライブラリです。サイト構造を意味で書き、公式テーマから始め、公開前に検証し、静的出力まで一続きで扱えます。")))
             , MetricsBlock
-                [ metric "公開面の入口" "`Portico`" (Just "site、theme、render、validate、build をひとつの import にまとめます。")
-                , metric "圧力テスト用サンプル" "6" (Just "docs、product、portfolio、profile、event、publication を用意しています。")
-                , metric "公式サイトの言語" "2 locales" (Just "英語を root、日本語を /ja/ に出力します。")
-                , metric "リリースゲート" "`npm run verify`" (Just "テスト、公式サイト、Pages 向け出力までまとめて確認します。")
+                [ metric "`Portico`" "公開面の入口" (Just "site、theme、render、validate、build をひとつの import にまとめます。")
+                , metric "6" "圧力テスト用サンプル" (Just "docs、product、portfolio、profile、event、publication を用意しています。")
+                , metric "2言語" "公式サイトの言語" (Just "英語を root、日本語を /ja/ に出力します。")
+                , metric "`npm run verify`" "リリースゲート" (Just "テスト、公式サイト、Pages 向け出力までまとめて確認します。")
                 ]
             , CodeBlock
                 (codeSample

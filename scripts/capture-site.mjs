@@ -11,12 +11,13 @@ const serverUrl = `http://127.0.0.1:${port}`;
 const chromePath = process.env.CHROME_BIN ?? detectChrome();
 
 const screenshotTargets = [
-  { name: "official-home-desktop", path: "/", width: 1440, height: 4200 },
-  { name: "official-home-mobile", path: "/", width: 430, height: 5200 },
-  { name: "sample-lab-desktop", path: "/lab/", width: 1440, height: 4600 },
-  { name: "preset-catalog-desktop", path: "/lab/presets.html", width: 1440, height: 4600 },
-  { name: "northstar-desktop", path: "/samples/northstar-cloud/index.html", width: 1440, height: 4600 },
-  { name: "mina-case-study-desktop", path: "/samples/mina-arai/work/harbor-clinic.html", width: 1440, height: 4800 },
+  { name: "official-home-desktop", path: "/", width: 1440, height: 4200, waitMs: 1200 },
+  { name: "official-home-mobile", path: "/", width: 430, height: 5200, waitMs: 1200 },
+  { name: "official-home-ja-desktop", path: "/ja/", width: 1440, height: 4200, waitMs: 2600 },
+  { name: "sample-lab-desktop", path: "/lab/", width: 1440, height: 4600, waitMs: 1200 },
+  { name: "preset-catalog-desktop", path: "/lab/presets.html", width: 1440, height: 4600, waitMs: 1200 },
+  { name: "northstar-desktop", path: "/samples/northstar-cloud/index.html", width: 1440, height: 4600, waitMs: 1200 },
+  { name: "mina-case-study-desktop", path: "/samples/mina-arai/work/harbor-clinic.html", width: 1440, height: 4800, waitMs: 1200 },
 ];
 
 function log(message) {
@@ -110,6 +111,7 @@ function captureScreenshot(target) {
         "--hide-scrollbars",
         "--no-sandbox",
         "--run-all-compositor-stages-before-draw",
+        `--virtual-time-budget=${target.waitMs ?? 0}`,
         `--window-size=${target.width},${target.height}`,
         `--screenshot=${destination}`,
         `${serverUrl}${target.path}`,
@@ -125,6 +127,7 @@ function captureScreenshot(target) {
           file: destination,
           width: target.width,
           height: target.height,
+          waitMs: target.waitMs ?? 0,
         });
       } else {
         rejectCapture(new Error(`Screenshot failed for ${target.path} with code ${code ?? "unknown"}`));

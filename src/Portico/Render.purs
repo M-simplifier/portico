@@ -377,9 +377,13 @@ renderLocaleLink currentLink =
 renderNavItem :: RouteContext -> NavItem -> String
 renderNavItem routeContext item =
   joinWith ""
-    [ "<a class=\"site-nav-link\" href=\""
+    [ "<a class=\"site-nav-link"
+    , if isCurrentNavItem routeContext item then " site-nav-link-current" else ""
+    , "\" href=\""
     , escapeHtml (resolveTarget routeContext item.target)
-    , "\">"
+    , "\""
+    , if isCurrentNavItem routeContext item then " aria-current=\"page\"" else ""
+    , ">"
     , escapeHtml item.label
     , "</a>"
     ]
@@ -773,6 +777,11 @@ resolveTarget routeContext = case _ of
   SitePath path -> relativeHref routeContext.currentOutputPath (mountedPath routeContext.siteRootPath path)
   CollectionPath path -> relativeHref routeContext.currentOutputPath path
 
+isCurrentNavItem :: RouteContext -> NavItem -> Boolean
+isCurrentNavItem routeContext item = case item.target of
+  SitePath path -> mountedPath routeContext.siteRootPath path == routeContext.currentOutputPath
+  _ -> false
+
 resolveAssetTarget :: RouteContext -> AssetTarget -> String
 resolveAssetTarget routeContext = case _ of
   ExternalAsset src -> src
@@ -971,7 +980,7 @@ renderStylesheetWithImports imports currentTheme =
     , ".page-shell{min-height:100vh;padding:1rem 0 1.5rem;}"
     , ".site-header{position:sticky;top:0;z-index:20;padding:0 1rem;}"
     , ".site-header-inner,.page-main,.site-footer{width:min(var(--frame-width),calc(100% - var(--page-inset)));margin:0 auto;}"
-    , ".site-header-inner{display:flex;align-items:center;justify-content:space-between;gap:1.5rem;padding:0.95rem 1.2rem;margin-top:0.8rem;border:1px solid color-mix(in srgb,var(--border) 80%,transparent);border-radius:calc(var(--radius) * 0.8);background:color-mix(in srgb,var(--panel) 86%,white);backdrop-filter:blur(18px);box-shadow:0 18px 48px rgba(15,23,42,0.08);}"
+    , ".site-header-inner{display:flex;align-items:center;justify-content:space-between;gap:1.5rem;padding:0.95rem 1.2rem;margin-top:0.8rem;border:1px solid color-mix(in srgb,var(--border) 80%,transparent);border-radius:calc(var(--radius) * 0.8);background:var(--header-surface);backdrop-filter:blur(18px);box-shadow:0 18px 48px rgba(15,23,42,0.08);}"
     , ".site-brand{display:flex;align-items:center;gap:1rem;min-width:0;}"
     , ".site-brand-mark{display:grid;place-items:center;width:2.65rem;height:2.65rem;border-radius:var(--brand-radius);background:linear-gradient(135deg,var(--text) 0%,color-mix(in srgb,var(--accent) 52%,var(--text)) 100%);color:white;font-family:var(--mono-font);font-size:0.78rem;letter-spacing:0.12em;text-transform:uppercase;box-shadow:0 18px 36px color-mix(in srgb,var(--accent) 18%,transparent);}"
     , ".site-brand-copy{display:grid;gap:0.2rem;min-width:0;}"
@@ -979,10 +988,12 @@ renderStylesheetWithImports imports currentTheme =
     , ".site-description{margin:0;color:var(--muted);font-size:0.92rem;max-width:28rem;}"
     , ".site-header-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;align-items:center;gap:0.75rem 1rem;}"
     , ".site-nav{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:0.65rem 1.15rem;}"
-    , ".site-nav-link{position:relative;padding:0.15rem 0;color:var(--muted);font-size:0.96rem;font-weight:600;}"
-    , ".site-nav-link::after{content:\"\";position:absolute;left:0;right:0;bottom:-0.45rem;height:2px;border-radius:999px;background:var(--accent);transform:scaleX(0);transform-origin:left;transition:transform 160ms ease;}"
-    , ".site-nav-link:hover{color:var(--text);}"
+    , ".site-nav-link{position:relative;padding:0.35rem 0.58rem;color:var(--muted);font-size:0.96rem;font-weight:600;border-radius:var(--pill-radius);transition:background 160ms ease,color 160ms ease;}"
+    , ".site-nav-link::after{content:\"\";position:absolute;left:0.6rem;right:0.6rem;bottom:0.12rem;height:2px;border-radius:999px;background:var(--accent);transform:scaleX(0);transform-origin:left;transition:transform 160ms ease;}"
+    , ".site-nav-link:hover{color:var(--text);background:color-mix(in srgb,var(--accent) 7%,white);}"
     , ".site-nav-link:hover::after{transform:scaleX(1);}"
+    , ".site-nav-link-current{color:var(--text);background:color-mix(in srgb,var(--accent) 10%,white);}"
+    , ".site-nav-link-current::after{transform:scaleX(1);}"
     , ".locale-switch{display:flex;flex-wrap:wrap;gap:0.45rem;}"
     , ".locale-switch-link{padding:0.4rem 0.72rem;border:1px solid color-mix(in srgb,var(--border) 88%,transparent);border-radius:var(--pill-radius);background:color-mix(in srgb,var(--panel) 92%,white);font-family:var(--mono-font);font-size:0.72rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);}"
     , ".locale-switch-link:hover{color:var(--text);border-color:var(--accent);}"
@@ -990,18 +1001,20 @@ renderStylesheetWithImports imports currentTheme =
     , ".page-main{padding:var(--page-top) 0 var(--page-bottom);}"
     , ".page-intro{margin-bottom:2.75rem;max-width:48rem;}"
     , ".page-kind,.hero-eyebrow,.callout-tone,.link-card-meta,.metric-label,.timeline-meta,.person-role,.quote-attribution strong,.code-title,.code-language{margin:0;font-size:0.78rem;font-family:var(--mono-font);letter-spacing:0.08em;text-transform:uppercase;color:var(--accent);}"
-    , ".page-intro h1{margin:0.45rem 0 0;font-family:var(--display-font);font-size:clamp(2.8rem,5vw,4.8rem);line-height:0.95;letter-spacing:-0.04em;max-width:11ch;}"
-    , ".hero-block h1{margin:0.35rem 0 0;font-family:var(--display-font);font-size:clamp(3.1rem,6vw,5.7rem);line-height:0.92;letter-spacing:-0.05em;max-width:10ch;}"
+    , ".page-intro h1{margin:0.45rem 0 0;font-family:var(--display-font);font-size:clamp(2.8rem,5vw,4.8rem);line-height:0.95;letter-spacing:-0.04em;max-width:12.5ch;}"
+    , ".hero-block h1{margin:0.35rem 0 0;font-family:var(--display-font);font-size:clamp(3.1rem,6vw,5.7rem);line-height:0.92;letter-spacing:-0.05em;max-width:11.75ch;}"
     , ".page-summary,.hero-body{max-width:42rem;font-size:1.08rem;color:var(--muted);}"
     , ".content-section + .content-section{margin-top:var(--section-gap);}"
     , ".content-section{position:relative;}"
     , ".section-header{margin-bottom:1.25rem;max-width:42rem;}"
     , ".section-header h2{margin:0;font-family:var(--display-font);font-size:clamp(1.7rem,3vw,2.35rem);line-height:1;letter-spacing:-0.03em;}"
     , ".section-stack{display:grid;gap:var(--stack-gap);}"
-    , ".content-section-composite .section-stack{grid-template-columns:minmax(0,1.3fr) minmax(18rem,0.92fr);align-items:start;}"
+    , ".content-section-composite .section-stack{grid-template-columns:minmax(0,1.24fr) minmax(20rem,0.9fr);align-items:start;}"
     , ".content-section-composite .hero-block{grid-row:1 / span 2;}"
     , ".content-section-composite .metric-grid{grid-template-columns:repeat(2,minmax(0,1fr));}"
     , ".content-section-composite .code-block{min-height:100%;}"
+    , ".content-section-code.content-section-composite .hero-block{grid-row:auto;}"
+    , ".content-section-code.content-section-composite .code-block{grid-column:1 / -1;}"
     , ".block-card{border:1px solid color-mix(in srgb,var(--border) 82%,transparent);border-radius:var(--radius);background:color-mix(in srgb,var(--panel) 92%,white);box-shadow:0 16px 40px rgba(15,23,42,0.08);}"
     , ".hero-block{padding:var(--hero-padding);display:grid;gap:1.1rem;overflow:hidden;position:relative;background:var(--hero-surface);box-shadow:0 36px 90px rgba(15,23,42,0.16);}"
     , ".hero-block::before{content:\"\";position:absolute;right:-4rem;top:-3rem;width:18rem;height:18rem;border-radius:999px;background:radial-gradient(circle,color-mix(in srgb,var(--accent) 28%,white) 0%,transparent 72%);opacity:0.95;pointer-events:none;}"
@@ -1085,6 +1098,9 @@ renderStylesheetWithImports imports currentTheme =
     , ".hero-block{padding:1.5rem;}"
     , ".hero-block h1{font-size:clamp(2.35rem,12vw,3.6rem);}"
     , ".page-intro h1{font-size:clamp(2.1rem,10vw,3.2rem);}"
+    , ".content-section-code.content-section-composite .hero-block{order:1;}"
+    , ".content-section-code.content-section-composite .code-block{order:2;grid-column:auto;}"
+    , ".content-section-code.content-section-composite .feature-grid,.content-section-code.content-section-composite .metric-grid,.content-section-code.content-section-composite .timeline,.content-section-code.content-section-composite .callout{order:3;}"
     , ".hero-actions,.link-grid,.feature-grid,.metric-grid,.people-grid{grid-template-columns:1fr;}"
     , ".link-card{min-height:auto;}"
     , "}"
