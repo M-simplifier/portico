@@ -10,7 +10,7 @@ import Effect (Effect)
 import Effect.Exception (throw)
 import Example.Official.LocalizedSite (officialLocalizedSite)
 import Example.Official.PublicSite (buildPublicSite, buildPublicSiteWithConfig)
-import Example.Official.Site (officialSite)
+import Example.Official.Site (officialSite, officialSiteTheme)
 import Example.Official.Showcase (buildShowcase, sampleSites, showcaseSite)
 import Portico (AssetTarget(..), Block(..), LocalizedSite, OfficialPreset(..), PageKind(..), RenderedPage, Site, ValidationCode(..), ValidationDiagnostic, ValidationSeverity(..), defaultStylesheetPath, emitLocalizedSite, emitSite, englishLocale, hasLocalizedErrors, hero, japaneseLocale, japaneseSiteLabels, localizedSite, localizedSiteDiagnostics, localizedVariant, namedSection, officialTheme, officialThemeOptions, officialThemeWith, officialThemeWithAccent, officialThemeWithPalette, officialThemeWithPreset, page, renderLocalizedSite, renderSite, renderStaticSite, renderStylesheet, site, siteDiagnostics, siteNavItem, slugLinkCard, validateLocalizedSite, validateSite, withBaseUrl, withDefaultSocialImage, withDescription, withNavigation, withSectionId, withSiteLabels, withSocialImage, withSummary)
 import Partial.Unsafe (unsafeCrashWith)
@@ -19,9 +19,9 @@ import Test.Support.FileSystem (pathExists, readTextFile, removeTree)
 main :: Effect Unit
 main = do
   let
-    renderedPages = renderSite officialTheme officialSite
-    renderedStaticSite = renderStaticSite defaultStylesheetPath officialTheme officialSite
-    localizedRenderedSite = renderLocalizedSite defaultStylesheetPath officialTheme officialLocalizedSite
+    renderedPages = renderSite officialSiteTheme officialSite
+    renderedStaticSite = renderStaticSite defaultStylesheetPath officialSiteTheme officialSite
+    localizedRenderedSite = renderLocalizedSite defaultStylesheetPath officialSiteTheme officialLocalizedSite
     metadataRenderedPages = renderSite officialTheme metadataSite
     accentThemeStyles = renderStylesheet (officialThemeWithAccent "#c2410c")
     presetThemeStyles = renderStylesheet (officialThemeWithPreset NightCircuit)
@@ -71,13 +71,13 @@ main = do
     publishabilityPage = expectRenderedPage "guide/publishability.html" renderedPages
     releasePage = expectRenderedPage "releases/0-1-0.html" renderedPages
   assert "document should include the site title" (contains (Pattern "Portico") homePage.html)
-  assert "hero eyebrow should render" (contains (Pattern "Published static sites") homePage.html)
+  assert "hero eyebrow should render" (contains (Pattern "Published public surfaces") homePage.html)
   assert "home page should advertise the sample lab" (contains (Pattern "href=\"lab/index.html\"") homePage.html)
   assert "home page should advertise the preset catalog" (contains (Pattern "href=\"lab/presets.html\"") homePage.html)
-  assert "home page should render the new fit copy" (contains (Pattern "It is not a lighter Asterism") homePage.html)
-  assert "home page should surface repo-first posture" (contains (Pattern "Pre-beta, repo-first") homePage.html)
+  assert "home page should render the Asterism boundary" (contains (Pattern "Not Asterism-lite") homePage.html)
+  assert "home page should surface pre-beta posture" (contains (Pattern "Public pre-beta") homePage.html)
   assert "learn page should explain the category boundary" (contains (Pattern "published public surfaces") learnPage.html)
-  assert "learn page should call out the Asterism boundary" (contains (Pattern "Not a lighter Asterism") learnPage.html)
+  assert "learn page should call out the Asterism boundary" (contains (Pattern "Asterism should take over") learnPage.html)
   assert "guide page should render code sample content" (contains (Pattern "import Portico") guidePage.html)
   assert "guide page should resolve the home route relatively" (contains (Pattern "href=\"../index.html\"") guidePage.html)
   assert "guide page should resolve theme links relatively" (contains (Pattern "href=\"theme-system.html\"") guidePage.html)
@@ -86,10 +86,10 @@ main = do
   assert "theme guide should include officialThemeWith content" (contains (Pattern "officialThemeWith") themePage.html)
   assert "theme guide should link to the preset catalog relatively" (contains (Pattern "href=\"../lab/presets.html\"") themePage.html)
   assert "publishability page should mention validateSite" (contains (Pattern "validateSite") publishabilityPage.html)
-  assert "publishability page should mention canonical and social metadata" (contains (Pattern "Canonical, OG, and Twitter tags are derived") publishabilityPage.html)
-  assert "publishability page should mention the release-oriented verify command" (contains (Pattern "npm run verify") publishabilityPage.html)
+  assert "publishability page should mention canonical metadata" (contains (Pattern "canonical") publishabilityPage.html)
+  assert "publishability page should mention localized output" (contains (Pattern "hreflang") publishabilityPage.html)
   assert "release copy should render" (contains (Pattern "Portico is in public pre-beta") releasePage.html)
-  assert "theme styles should render" (contains (Pattern "--accent:#0f766e") homePage.html)
+  assert "theme styles should render" (contains (Pattern "--accent:#2563eb") homePage.html)
   assert "inline render should include a style tag" (contains (Pattern "<style>") homePage.html)
   let
     localizedHomePage = expectRenderedPage "index.html" localizedRenderedSite.pages
@@ -138,8 +138,8 @@ main = do
       assert "stylesheet asset should use the default path" (stylesheet.path == defaultStylesheetPath)
       assert "stylesheet asset should contain the hero styles" (contains (Pattern ".hero-block") stylesheet.content)
       assert "stylesheet asset should contain code block styles" (contains (Pattern ".code-block") stylesheet.content)
-      assert "stylesheet asset should expose spacing variables" (contains (Pattern "--page-inset:3rem") stylesheet.content)
-      assert "stylesheet asset should expose surface variables" (contains (Pattern "--frame-width:72rem") stylesheet.content)
+      assert "stylesheet asset should expose spacing variables" (contains (Pattern "--page-inset:3.6rem") stylesheet.content)
+      assert "stylesheet asset should expose surface variables" (contains (Pattern "--frame-width:76rem") stylesheet.content)
     _ ->
       throw "renderStaticSite returned an unexpected asset list"
 
@@ -174,7 +174,7 @@ main = do
   assert "invalid localized site should not be considered clean" (hasLocalizedErrors invalidLocalizedSite == false)
 
   removeTree outputDirectory
-  emitSite outputDirectory officialTheme officialSite
+  emitSite outputDirectory officialSiteTheme officialSite
   emittedHome <- readTextFile (outputDirectory <> "/index.html")
   emittedLearn <- readTextFile (outputDirectory <> "/learn/fit.html")
   emittedGuide <- readTextFile (outputDirectory <> "/guide/getting-started.html")
@@ -184,12 +184,12 @@ main = do
   emittedPublishability <- readTextFile (outputDirectory <> "/guide/publishability.html")
   emittedRelease <- readTextFile (outputDirectory <> "/releases/0-1-0.html")
   emittedStylesheet <- readTextFile (outputDirectory <> "/assets/portico.css")
-  assert "emitted home page should contain the hero title" (contains (Pattern "Build published static sites in PureScript.") emittedHome)
+  assert "emitted home page should contain the hero title" (contains (Pattern "Build static sites with a real front door.") emittedHome)
   assert "emitted home page should link the sample lab" (contains (Pattern "href=\"lab/index.html\"") emittedHome)
-  assert "emitted learn page should contain the Asterism boundary" (contains (Pattern "Not a lighter Asterism") emittedLearn)
-  assert "emitted guide page should contain guide prose" (contains (Pattern "supported path") emittedGuide)
-  assert "emitted guide page should contain the code sample title" (contains (Pattern "One import, one site, one validated build path") emittedGuide)
-  assert "emitted ai path should mention the implementation agent packet" (contains (Pattern "Minimal task packet for an implementation agent") emittedAi)
+  assert "emitted learn page should contain the Asterism boundary" (contains (Pattern "Asterism should take over") emittedLearn)
+  assert "emitted guide page should contain guide prose" (contains (Pattern "clarity, not ceremony") emittedGuide)
+  assert "emitted guide page should contain the code sample title" (contains (Pattern "A minimal Portico site") emittedGuide)
+  assert "emitted ai path should mention the delegation checklist" (contains (Pattern "Delegation checklist") emittedAi)
   assert "emitted reference page should mention Portico.Build" (contains (Pattern "Portico.Build") emittedReference)
   assert "emitted theme guide should link to the preset catalog relatively" (contains (Pattern "href=\"../lab/presets.html\"") emittedThemeGuide)
   assert "emitted publishability page should contain faq content" (contains (Pattern "Do I need a base URL to render?") emittedPublishability)
@@ -200,10 +200,10 @@ main = do
   assert "emitted guide page should link home relatively" (contains (Pattern "href=\"../index.html\"") emittedGuide)
 
   removeTree localizedOutputDirectory
-  emitLocalizedSite localizedOutputDirectory officialTheme officialLocalizedSite
+  emitLocalizedSite localizedOutputDirectory officialSiteTheme officialLocalizedSite
   emittedLocalizedJaHome <- readTextFile (localizedOutputDirectory <> "/ja/index.html")
   emittedLocalizedJaStylesheet <- readTextFile (localizedOutputDirectory <> "/ja/assets/portico.css")
-  assert "emitted localized japanese home should contain translated copy" (contains (Pattern "PureScriptで、公開サイトをつくる。") emittedLocalizedJaHome)
+  assert "emitted localized japanese home should contain translated copy" (contains (Pattern "公開サイトの front door を、静的に組み立てる。") emittedLocalizedJaHome)
   assert "emitted localized japanese home should contain alternate links" (contains (Pattern "href=\"../index.html\"") emittedLocalizedJaHome)
   assert "emitted localized japanese stylesheet should contain shared block styles" (contains (Pattern ".block-card") emittedLocalizedJaStylesheet)
   assert "emitted localized japanese stylesheet should contain ja-specific typography rules" (contains (Pattern "html:lang(ja) .page-intro h1") emittedLocalizedJaStylesheet)
@@ -295,7 +295,7 @@ main = do
   publicLabPresets <- readTextFile (publicOutputDirectory <> "/lab/presets.html")
   publicSampleHome <- readTextFile (publicOutputDirectory <> "/samples/northstar-cloud/index.html")
   publicSampleNested <- readTextFile (publicOutputDirectory <> "/samples/mina-arai/work/harbor-clinic.html")
-  assert "public home should use the official site root" (contains (Pattern "Build published static sites in PureScript.") publicHome)
+  assert "public home should use the official site root" (contains (Pattern "Build static sites with a real front door.") publicHome)
   assert "public guide should link back to the sample lab relatively" (contains (Pattern "href=\"../lab/index.html\"") publicGuide)
   assert "public japanese home should exist under /ja" (contains (Pattern "<html lang=\"ja\">") publicJaHome)
   assert "public japanese home should link back to english root" (contains (Pattern "href=\"../index.html\"") publicJaHome)

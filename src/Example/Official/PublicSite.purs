@@ -14,7 +14,7 @@ import Data.Maybe (Maybe(..))
 import Example.Official.FileSystem (removeTree)
 import Example.Official.LocalizedSite (officialLocalizedSite)
 import Example.Official.Showcase (buildMountedShowcaseWithSiteTransform, mountedShowcasePaths, sampleSitesWithPaths, showcaseSiteWithPaths)
-import Example.Official.Site (officialSite)
+import Example.Official.Site (officialSite, officialSiteTheme)
 import Effect (Effect)
 import Portico
   ( Block(..)
@@ -33,7 +33,6 @@ import Portico
     , hero
     , localeCode
     , namedSection
-    , officialTheme
     , page
     , pageKey
     , pagePath
@@ -64,9 +63,9 @@ buildPublicSite =
 buildPublicSiteWithConfig :: PublicBuildConfig -> String -> Effect Unit
 buildPublicSiteWithConfig config outputDirectory = do
   removeTree outputDirectory
-  emitLocalizedSite outputDirectory officialTheme (applyBuildConfigToLocalized config officialLocalizedSite)
+  emitLocalizedSite outputDirectory officialSiteTheme (applyBuildConfigToLocalized config officialLocalizedSite)
   buildMountedShowcaseWithSiteTransform (applyBuildConfig config) outputDirectory "lab"
-  emitRenderedPage outputDirectory (renderPage officialTheme (applyBuildConfig config officialSite) notFoundPage)
+  emitRenderedPage outputDirectory (renderPage officialSiteTheme (applyBuildConfig config officialSite) notFoundPage)
   traverse_ (emitRenderedAsset outputDirectory) (publishAssets config)
 
 publishAssets :: PublicBuildConfig -> Array RenderedAsset

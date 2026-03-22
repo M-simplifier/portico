@@ -1,5 +1,6 @@
 module Example.Official.Site
   ( officialSite
+  , officialSiteTheme
   ) where
 
 import Prelude
@@ -8,8 +9,10 @@ import Data.Maybe (Maybe(..))
 import Portico
   ( Block(..)
   , CalloutTone(..)
+  , OfficialPreset(..)
   , PageKind(..)
   , Site
+  , Theme
   , callout
   , collectionLinkCard
   , collectionNavItem
@@ -18,8 +21,11 @@ import Portico
   , feature
   , hero
   , linkCard
+  , metric
   , namedSection
   , navItem
+  , officialThemeOptions
+  , officialThemeWith
   , page
   , site
   , slugLinkCard
@@ -32,31 +38,69 @@ import Portico
   , withSummary
   )
 
+officialSiteTheme :: Theme
+officialSiteTheme =
+  officialThemeWith
+    ((officialThemeOptions SignalPaper)
+      { palette = Just
+          { background: "#eef4ff"
+          , panel: "#fbfdff"
+          , text: "#0f172a"
+          , mutedText: "#475569"
+          , accent: "#2563eb"
+          , border: "#d9e4f5"
+          }
+      , typography = Just
+          { display: "\"Space Grotesk\", \"Hiragino Sans\", \"Yu Gothic UI\", \"Yu Gothic\", \"Noto Sans JP\", sans-serif"
+          , body: "\"Public Sans\", \"Hiragino Sans\", \"Yu Gothic UI\", \"Yu Gothic\", \"Noto Sans JP\", sans-serif"
+          , mono: "\"IBM Plex Mono\", \"SFMono-Regular\", \"Hiragino Sans\", \"Yu Gothic UI\", \"Noto Sans Mono CJK JP\", monospace"
+          }
+      , spacing = Just
+          { pageInset: "3.6rem"
+          , pageTop: "4.7rem"
+          , pageBottom: "6rem"
+          , sectionGap: "4.2rem"
+          , stackGap: "1.35rem"
+          , cardPadding: "1.45rem"
+          , heroPadding: "2.7rem"
+          }
+      , surface = Just
+          { frameWidth: "76rem"
+          , brandRadius: "1rem"
+          , pillRadius: "999px"
+          , headerSurface: "color-mix(in srgb,var(--panel) 86%,white)"
+          , heroSurface: "linear-gradient(140deg,#ffffff 0%,color-mix(in srgb,var(--accent) 12%,white) 38%,color-mix(in srgb,var(--accent) 24%,#dbeafe) 100%)"
+          , quoteSurface: "linear-gradient(145deg,color-mix(in srgb,var(--accent) 10%,white) 0%,var(--panel) 100%)"
+          }
+      , radius = Just "28px"
+      , shadow = Just "0 36px 100px rgba(15, 23, 42, 0.24)"
+      })
+
 officialSite :: Site
 officialSite =
   withNavigation
-    [ slugNavItem "Learn" learnSlug
-    , slugNavItem "Start" startSlug
-    , slugNavItem "AI" aiPathSlug
+    [ slugNavItem "Start" startSlug
+    , slugNavItem "Themes" themeSlug
+    , slugNavItem "Publish" publishabilitySlug
     , slugNavItem "Reference" referenceSlug
     , collectionNavItem "Lab" labHomePath
     , navItem "GitHub" githubRepositoryHref
     ]
-      (withDescription
-      "Semantic PureScript sites for docs, releases, portfolios, essays, and other published static surfaces."
+    (withDescription
+      "Static sites in PureScript for docs, project front doors, release pages, portfolios, and editorial surfaces."
       (site
         "Portico"
         [ homePage
-        , learnPage
+        , whyPage
         , startPage
-        , aiPathPage
+        , aiPage
         , referencePage
         , themePage
         , publishabilityPage
         , releasePage
         ]))
   where
-  learnSlug = "learn/fit"
+  whySlug = "learn/fit"
 
   startSlug = "guide/getting-started"
 
@@ -74,11 +118,23 @@ officialSite =
 
   presetCatalogPath = "lab/presets.html"
 
+  docsSamplePath = "samples/northline-docs/index.html"
+
+  productSamplePath = "samples/northstar-cloud/index.html"
+
+  profileSamplePath = "samples/mina-arai/index.html"
+
+  summitSamplePath = "samples/signal-summit/index.html"
+
   githubRepositoryHref = "https://github.com/M-simplifier/portico"
 
   githubAgentQuickstartHref = githubRepositoryHref <> "/blob/main/docs/agent-quickstart.md"
 
   githubSkillHref = githubRepositoryHref <> "/blob/main/skills/portico-user/SKILL.md"
+
+  githubVisionHref = githubRepositoryHref <> "/blob/main/docs/vision.md"
+
+  githubArchitectureHref = githubRepositoryHref <> "/blob/main/docs/architecture.md"
 
   githubDeploymentHref = githubRepositoryHref <> "/blob/main/docs/deployment.md"
 
@@ -86,9 +142,21 @@ officialSite =
 
   githubReleaseChecklistHref = githubRepositoryHref <> "/blob/main/docs/release-checklist.md"
 
+  gettingStartedCode =
+    "import Portico\n\nsiteDefinition =\n  site \"Signal Manual\"\n    [ withSummary\n        \"A calm docs front door.\"\n        (page \"index\" Landing \"Signal Manual\"\n          [ namedSection \"Overview\"\n              [ HeroBlock\n                  (withEyebrow\n                    \"Published public surfaces\"\n                    (hero\n                      \"Build a real front door.\"\n                      \"Model the site semantically and keep the path static-first.\"))\n              ]\n          ])\n    ]\n\nmain = do\n  let report = validateSite siteDefinition\n  emitSite \"site/dist\" officialTheme siteDefinition"
+
+  themeCode =
+    "import Portico\n\nsiteTheme =\n  officialThemeWith\n    ((officialThemeOptions SignalPaper)\n      { accent = Just \"#2563eb\"\n      , spacing = Just\n          { pageInset: \"3.6rem\"\n          , pageTop: \"4.7rem\"\n          , pageBottom: \"6rem\"\n          , sectionGap: \"4.2rem\"\n          , stackGap: \"1.35rem\"\n          , cardPadding: \"1.45rem\"\n          , heroPadding: \"2.7rem\"\n          }\n      })"
+
+  localizedCode =
+    "import Portico\n\nlocalizedDefinition =\n  localizedSite\n    englishLocale\n    [ localizedVariant englishLocale \"English\" \"\" englishSite\n    , localizedVariant japaneseLocale \"Japanese\" \"ja\" japaneseSite\n    ]\n\nmain = do\n  let report = validateLocalizedSite localizedDefinition\n  emitLocalizedSite \"site/dist\" officialTheme localizedDefinition"
+
+  aiChecklistCode =
+    "Use Portico for published static sites.\nImport from Portico.\nPrefer site, page, section, and semantic blocks.\nUse route helpers instead of hand-written relative links.\nKeep theme concerns separate from content structure.\nRun validateSite or validateLocalizedSite before publish.\nEmit output with emitSite, emitMountedSite, or emitLocalizedSite."
+
   homePage =
     withSummary
-      "A semantic site DSL, official theme system, and publishability path for published static sites in PureScript."
+      "Static sites with a real front door: semantic structure, official themes, validation, and clean multi-page output in PureScript."
       (page
         "index"
         Landing
@@ -97,254 +165,282 @@ officialSite =
             "Overview"
             [ HeroBlock
                 (withActions
-                  [ slugLinkCard "Learn where Portico fits" learnSlug (Just "Decide whether Portico matches the kind of public site you need to publish.")
-                  , slugLinkCard "Start with the supported path" startSlug (Just "Go from one import to validated static output.")
-                  , slugLinkCard "See the AI path" aiPathSlug (Just "Use the narrow, repo-first path intended for high-agency implementation agents.")
+                  [ slugLinkCard "Start here" startSlug (Just "Move from one import to a working site and a publishable build.")
+                  , collectionLinkCard "Browse the sample lab" labHomePath (Just "See docs, landing, portfolio, event, and editorial surfaces emitted by Portico.")
+                  , linkCard "Open GitHub" githubRepositoryHref (Just "Read the repo, docs, and current pre-beta public surface.")
                   ]
                   (withEyebrow
-                    "Published static sites"
+                    "Published public surfaces"
                     (hero
-                      "Build published static sites in PureScript."
-                      "Portico gives docs, release pages, portfolios, essays, and other public surfaces a semantic site model, an official theme system, and a static publishability path. It is not a lighter Asterism, and it is not aimed at app-shell software.")))
+                      "Build static sites with a real front door."
+                      "Portico is a PureScript library for docs, project sites, release pages, portfolios, and editorial surfaces. Write site structure semantically, start from an official theme, validate before publish, and emit clean static output.")))
+            , MetricsBlock
+                [ metric "Public happy path" "`Portico`" (Just "One import across site model, themes, render, validate, and build.")
+                , metric "Pressure-test samples" "6" (Just "Docs, product, portfolio, profile, event, and publication surfaces.")
+                , metric "Localized official site" "2 locales" (Just "English at the root and Japanese under /ja/.")
+                , metric "Release gate" "`npm run verify`" (Just "Checks tests, official-site builds, and GitHub Pages output.")
+                ]
+            , CodeBlock
+                (codeSample
+                  gettingStartedCode
+                  (Just "purescript")
+                  (Just "From site model to static output"))
+            ]
+        , namedSection
+            "Why Portico exists"
+            [ ProseBlock "Most site tooling starts with templates, markdown pipelines, or raw layout freedom. Portico starts one layer higher: the public information architecture of a publishable site."
             , FeatureGridBlock
-                [ feature "Semantic site model" "Keep public information architecture explicit in `site`, `page`, `section`, and blocks instead of burying it in ad hoc layout markup."
-                , feature "Official theme system" "Start from reading posture rather than accent color, then customize in layers without collapsing the site model."
-                , feature "Publishability by default" "Validate routes, summaries, metadata, and output shape before treating a site definition as real."
-                , feature "Repo-first truth" "The official site, sample lab, and repo docs are the current contract while pre-beta work is still moving."
+                [ feature "Semantic site model" "Keep site, page, section, navigation, and content blocks explicit instead of hiding them inside ad hoc markup."
+                , feature "Official theme system" "Start from a strong visual voice, then tune palette, typography, spacing, and chrome in layers."
+                , feature "Publish-time checks" "Catch broken routes, missing summaries, duplicate sections, and weak metadata before release."
+                , feature "Static-first localization" "Emit real locale variants with real routes, lang attributes, and alternate metadata."
                 ]
+            , CalloutBlock
+                (callout Strong "Not Asterism-lite" "If the surface wants authenticated flows, long-lived state, or app-shell behavior, the design center has already moved out of Portico.")
             ]
         , namedSection
-            "Choose your path"
-            [ LinkGridBlock
-                [ slugLinkCard "Learn where it fits" learnSlug (Just "Start with category fit, scope, and the Portico vs Asterism boundary.")
-                , slugLinkCard "Get started" startSlug (Just "Move from one import to a minimal validated site.")
-                , slugLinkCard "Use it with AI" aiPathSlug (Just "Review the operational path for delegating site work to an implementation agent.")
-                , slugLinkCard "Read the reference" referenceSlug (Just "See the supported families, contract rules, and docs map.")
+            "What it is good at"
+            [ FeatureGridBlock
+                [ feature "Official project sites" "Front doors that need a clear promise, a docs path, and a release-adjacent information architecture."
+                , feature "Docs and guides" "Concept pages, getting-started flows, nested reference, and calm technical reading without app-shell drift."
+                , feature "Release and changelog pages" "Published updates with stable routing, metadata, and a durable static output story."
+                , feature "Editorial and portfolio surfaces" "Case studies, essays, notes, and smaller publication sites that still need intentional structure."
                 ]
-            ]
-        , namedSection
-            "See it in practice"
-            [ CalloutBlock
-                (callout Quiet "Optional proof" "Once the fit and supported path are clear, use the sample lab and preset catalog to pressure-test breadth and visual range.")
             , LinkGridBlock
-                [ collectionLinkCard "Browse the sample lab" labHomePath (Just "Explore the broader pressure-test gallery across docs, product, portfolio, profile, event, and publication surfaces.")
-                , collectionLinkCard "Open the preset catalog" presetCatalogPath (Just "Choose a theme by site intent and reading posture before fine-grained customization.")
-                , slugLinkCard "Deep dive on themes" themeSlug (Just "See how presets and layered customization fit together.")
-                , slugLinkCard "Deep dive on publishability" publishabilitySlug (Just "Review validation, metadata, static output, and deploy-oriented files.")
+                [ slugLinkCard "Read why it fits" whySlug (Just "See the category boundary, scope, and design center in one place.")
+                , slugLinkCard "Read the AI workflow" aiPathSlug (Just "Keep implementation agents on the same narrow authoring lane.")
+                , slugLinkCard "Read the reference" referenceSlug (Just "See the current public module families and contract rules.")
+                , slugLinkCard "Start here" startSlug (Just "Go straight to the smallest useful authoring path.")
                 ]
             ]
         , namedSection
-            "Current release"
+            "Proof in the open"
             [ CalloutBlock
-                (callout Quiet "Pre-beta, repo-first" "Portico is public and usable now, but the contract is still settling. Treat the repository, official site, and `npm run verify` as the current source of truth.")
+                (callout Accent "Dogfooded on purpose" "The official site, its Japanese variant, and the mounted sample lab are all emitted by Portico. The proof surface is meant to pressure the library, not to sit beside it.")
             , LinkGridBlock
-                [ slugLinkCard "Read release 0.1.0" releaseSlug (Just "See what is live now and what is still intentionally moving.")
-                , linkCard "Open the GitHub repository" githubRepositoryHref (Just "Use the repo as the current source of truth for code, docs, issues, and release posture.")
-                , linkCard "Read the deployment guide" githubDeploymentHref (Just "Review the GitHub Pages-oriented base-URL and publish flow.")
+                [ collectionLinkCard "Browse the sample lab" labHomePath (Just "Explore the broader pressure-test gallery across multiple public site shapes.")
+                , collectionLinkCard "Open the preset catalog" presetCatalogPath (Just "Choose a theme by site intent before you fine-tune it.")
+                , slugLinkCard "Read the theme system" themeSlug (Just "See how presets and layered customization fit together.")
+                , slugLinkCard "Read publishability" publishabilitySlug (Just "Review validation, metadata, localized output, and deploy-oriented files.")
+                ]
+            ]
+        , namedSection
+            "Release posture"
+            [ CalloutBlock
+                (callout Quiet "Public pre-beta" "Portico is live and usable now, but the public contract is still settling. The repository, official site, and npm run verify are the current source of truth.")
+            , LinkGridBlock
+                [ slugLinkCard "Read release 0.1.0" releaseSlug (Just "See what is shipped, what is stable enough to evaluate, and what still needs pressure.")
+                , linkCard "Open the GitHub repository" githubRepositoryHref (Just "Use the repo for code, docs, issues, and current release posture.")
+                , linkCard "Read the deployment guide" githubDeploymentHref (Just "See the GitHub Pages-oriented base-url and publishing flow.")
+                , linkCard "Read contribution expectations" (githubRepositoryHref <> "/blob/main/CONTRIBUTING.md") (Just "Current pre-beta contribution posture and response expectations.")
                 ]
             ]
         ])
 
-  learnPage =
+  whyPage =
     withSummary
-      "Decide whether Portico matches the kind of site you need to publish."
+      "Where Portico fits and why its scope stays narrow."
       (page
-        learnSlug
-        (CustomKind "Learn")
-        "What Portico Is For"
+        whySlug
+        (CustomKind "Why")
+        "Why Portico"
         [ namedSection
-            "Category"
-            [ ProseBlock "Portico is for published public surfaces: official project sites, docs, release pages, portfolios, essays, and small event or campaign sites that should ship cleanly as static output."
+            "Design center"
+            [ HeroBlock
+                (withActions
+                  [ slugLinkCard "Start here" startSlug (Just "Use the smallest path from site definition to emitted pages.")
+                  , slugLinkCard "Read publishability" publishabilitySlug (Just "See the release-facing validation and metadata story.")
+                  , collectionLinkCard "Browse the sample lab" labHomePath (Just "Pressure-test the library across multiple site categories.")
+                  ]
+                  (withEyebrow
+                    "Scope"
+                    (hero
+                      "A static-site library should understand public structure."
+                      "Portico exists for published public surfaces: the parts of the web that need promise, path, proof, and calm reading rhythm without turning into an app shell.")))
             , FeatureGridBlock
-                [ feature "Official sites" "Use Portico when a project needs a public front door, a stable explanation path, and a readable release surface."
-                , feature "Docs and guides" "Use it for concept pages, getting-started flows, API-adjacent reference, and release adjacency without turning the site into an app shell."
-                , feature "Release and publication surfaces" "Portico fits changelog pages, essays, notebooks, and other reading-first artifacts with a public publishing cadence."
-                , feature "Portfolios and microsites" "It also fits calmer showcase, case-study, and event-style sites where public information architecture matters more than interaction density."
+                [ feature "Official sites" "Project front doors that need to explain what a thing is, how to start, and where deeper docs live."
+                , feature "Docs and learning surfaces" "Concept pages, nested reference, and release adjacency for readers who are there to understand, not operate software."
+                , feature "Release communication" "Changelog, release, and rollout pages that should survive static hosting and subpath deployment cleanly."
+                , feature "Editorial surfaces" "Portfolios, essays, notes, and publication-style pages where structure matters more than interaction density."
                 ]
             , CalloutBlock
-                (callout Strong "Not a lighter Asterism" "If the surface wants long-lived state, authenticated flows, heavy interaction, or browser-software behavior, the design center has already shifted out of Portico.")
+                (callout Strong "Out of scope on purpose" "Dashboards, editors, authenticated apps, and interaction-heavy browser software want a different runtime model. That is where Asterism should take over.")
             ]
         , namedSection
-            "How Portico thinks"
-            [ FeatureGridBlock
-                [ feature "Semantic structure first" "The public model starts from site, page, section, block, navigation, and route helpers instead of raw HTML fragments."
-                , feature "Theme stays separate" "Design tokens, reading posture, spacing, and chrome live in the theme layer rather than leaking into the content model."
-                , feature "Static-first build" "Rendering, validation, metadata, and file emission are all aimed at clean static output rather than app runtime concerns."
-                , feature "Public IA over interaction" "The center of gravity is explanation, sequencing, and orientation on public surfaces, not micro-interaction density."
-                ]
-            , CalloutBlock
-                (callout Accent "Why this matters" "The goal is to let humans and AI land on the same explicit public-site structure instead of rediscovering it from layout markup every time.")
-            ]
-        , namedSection
-            "What it is not for"
-            [ FeatureGridBlock
-                [ feature "Dashboards" "Operational consoles want dense state, filters, and interaction loops that are outside Portico's center of gravity."
-                , feature "Editors" "Authoring and editing software need a different runtime model than publish-time static output."
-                , feature "Authenticated apps" "If identity, sessions, and private state are core to the surface, Portico is the wrong abstraction boundary."
-                , feature "Interaction-heavy browser software" "Once a site starts acting like software first and a public surface second, the problem should likely move toward Asterism."
+            "The product idea"
+            [ ProseBlock "Portico is not trying to be every kind of website tool. It is trying to be unusually clear and effective for a narrower category: static public sites that need to look intentional, stay legible to implementation agents, and remain easy to publish."
+            , FeatureGridBlock
+                [ feature "Promise first" "A good official site establishes what the product is in the first viewport instead of leading with internal process language."
+                , feature "Path second" "Getting started, themes, publishability, and reference should feel like one coherent system, not a bag of related notes."
+                , feature "Proof nearby" "Examples, release notes, and the public repo should be visible proof surfaces, but they should not crowd out the front door."
+                , feature "Static output matters" "Routes, metadata, localized variants, and deploy files are part of the site product, not just packaging trivia."
                 ]
             ]
         , namedSection
-            "If it fits"
+            "If your site fits"
             [ LinkGridBlock
-                [ slugLinkCard "Start with the supported path" startSlug (Just "Move from fit into the minimal authoring path.")
-                , slugLinkCard "See the AI path" aiPathSlug (Just "Review the repo-first, agent-oriented adoption lane.")
-                , slugLinkCard "Read the reference" referenceSlug (Just "Confirm the supported families and contract rules.")
-                , slugLinkCard "Review the theme system" themeSlug (Just "Pick a preset and only then customize in layers.")
-                , slugLinkCard "Review publishability" publishabilitySlug (Just "See the validation and static-output side of the contract.")
-                , collectionLinkCard "Browse the sample lab" labHomePath (Just "Use the broader proof surface after the fit is clear.")
+                [ slugLinkCard "Start here" startSlug (Just "Build the smallest useful site and keep the public path coherent.")
+                , slugLinkCard "Read the theme system" themeSlug (Just "Choose a visual voice and then tune it deliberately.")
+                , slugLinkCard "Read publishability" publishabilitySlug (Just "Treat validation and deploy metadata as part of authoring.")
+                , slugLinkCard "Read the reference" referenceSlug (Just "See the current module families and rules of use.")
+                , collectionLinkCard "Browse the sample lab" labHomePath (Just "Compare Portico across multiple public-site shapes.")
                 ]
             ]
         ])
 
   startPage =
     withSummary
-      "The shortest supported path from one import to validated static output."
+      "The smallest path from one import to a publishable static site."
       (page
         startSlug
         (CustomKind "Start")
-        "Get Started"
+        "Start Here"
         [ namedSection
             "Golden path"
-            [ TimelineBlock
-                [ timelineEntry "1. Import from `Portico`" "Start from the root module so the supported site, theme, render, validate, and build families stay on one obvious path." Nothing
-                , timelineEntry "2. Model the site semantically" "Use `site`, `page`, `section`, semantic blocks, navigation, and route helpers instead of raw HTML fragments." Nothing
-                , timelineEntry "3. Choose the official voice" "Start from `officialTheme` or an official preset before reaching for custom typography, spacing, or surface overrides." Nothing
-                , timelineEntry "4. Validate and emit" "Run `validateSite`, then render or emit static output once the public surface is coherent." Nothing
+            [ HeroBlock
+                (withActions
+                  [ slugLinkCard "Read the reference" referenceSlug (Just "See the current public module families before you drop into internals.")
+                  , slugLinkCard "Read the theme system" themeSlug (Just "Choose a visual voice before you start hand-tuning design.")
+                  , collectionLinkCard "Browse the sample lab" labHomePath (Just "Pressure-test the ideas on real public-site shapes.")
+                  ]
+                  (withEyebrow
+                    "Authoring"
+                    (hero
+                      "Go from one import to published pages."
+                      "Start from Portico, model the site semantically, choose an official theme, validate, and emit static output. The point is clarity, not ceremony.")))
+            , TimelineBlock
+                [ timelineEntry "Import from `Portico`" "Start from the umbrella module so site, theme, render, validate, and build stay on one obvious path." Nothing
+                , timelineEntry "Model the site semantically" "Use site, page, section, semantic blocks, navigation, and route helpers instead of hand-writing layout fragments." Nothing
+                , timelineEntry "Pick the official voice" "Start from officialTheme or a preset before tuning palette, spacing, typography, and surface details." Nothing
+                , timelineEntry "Validate and emit" "Run validateSite, then render or emit clean static output once the site reads like a publishable surface." Nothing
                 ]
-            , CalloutBlock
-                (callout Accent "Stay on the supported path" "If a shape keeps recurring, add or refine a Portico primitive instead of scattering one-off markup.")
-            ]
-        , namedSection
-            "Minimal site"
-            [ CodeBlock
+            , CodeBlock
                 (codeSample
-                  "import Portico\n\nsiteDefinition =\n  site \"Signal Manual\"\n    [ withSummary\n        \"A calm docs front door.\"\n        (page \"index\" Landing \"Signal Manual\"\n          [ namedSection \"Intro\"\n              [ HeroBlock\n                  (hero\n                    \"Published surfaces in PureScript.\"\n                    \"Stay on the semantic path.\")\n              ]\n          ])\n    ]\n\nmain = do\n  let report = validateSite siteDefinition\n  emitSite \"site/dist\" officialTheme siteDefinition"
+                  gettingStartedCode
                   (Just "purescript")
-                  (Just "One import, one site, one validated build path"))
+                  (Just "A minimal Portico site"))
             ]
         , namedSection
-            "Reach for these first"
+            "Key APIs"
             [ FeatureGridBlock
-                [ feature "Import from `Portico`" "Start from the umbrella module before you drop into individual families."
-                , feature "`officialTheme`" "Use the calm default first, then move to presets or layered customization only when the site needs it."
-                , feature "`validateSite`" "Treat publishability diagnostics as part of the supported authoring loop, not as optional polish."
-                , feature "`emitSite` / `emitMountedSite`" "Emit clean static output once the site structure and relative paths are ready."
+                [ feature "Import from `Portico`" "Use the public root first. Drop into submodules only when the specific need is clear."
+                , feature "`site`, `page`, and `namedSection`" "Keep the public information architecture visible in values instead of reconstructing it from layout markup."
+                , feature "`officialThemeWith`" "Treat theme choice as a site-level decision and only then customize it in controlled layers."
+                , feature "`validateSite` and `emitSite`" "Make diagnostics and static output part of the normal authoring loop, not last-minute cleanup."
                 ]
             ]
         , namedSection
-            "Next docs"
+            "Next steps"
             [ LinkGridBlock
-                [ slugLinkCard "Read the reference" referenceSlug (Just "See the supported families and contract rules.")
-                , slugLinkCard "Review the AI path" aiPathSlug (Just "Use the narrower adoption lane when the work is being delegated to an agent.")
-                , slugLinkCard "Review the theme system" themeSlug (Just "Choose a preset and understand the customization ladder.")
-                , slugLinkCard "Review publishability" publishabilitySlug (Just "See what Portico checks and emits before publish.")
-                , collectionLinkCard "Browse the sample lab" labHomePath (Just "Compare the broader pressure-test surfaces after the minimal path is clear.")
+                [ slugLinkCard "Read the reference" referenceSlug (Just "Confirm the public module families and contract rules.")
+                , slugLinkCard "Read publishability" publishabilitySlug (Just "See what Portico checks and emits before release.")
+                , slugLinkCard "Read the AI workflow" aiPathSlug (Just "Keep delegated authoring aligned with the same narrow path.")
+                , slugLinkCard "Read the theme system" themeSlug (Just "Learn how presets and layered overrides fit together.")
+                , collectionLinkCard "Browse the sample lab" labHomePath (Just "Compare the library across multiple site categories.")
                 ]
             ]
         ])
 
-  aiPathPage =
+  aiPage =
     withSummary
-      "The operational lane for people deciding whether to delegate site authoring to AI."
+      "A narrow authoring lane for implementation agents."
       (page
         aiPathSlug
-        (CustomKind "AI Path")
-        "AI Adoption Path"
+        (CustomKind "AI")
+        "AI Workflow"
         [ namedSection
-            "Delegation"
+            "Delegate the site, not the category boundary"
             [ HeroBlock
                 (withActions
-                  [ linkCard "Open Agent Quickstart" githubAgentQuickstartHref (Just "Read the repo doc that describes the default AI-oriented implementation path.")
-                  , slugLinkCard "Read the public surface" referenceSlug (Just "Confirm the supported families and contract rules before broadening the task.")
-                  , linkCard "Open the repo-first skill" githubSkillHref (Just "See the source-first adoption skill for consuming apps before package distribution.")
+                  [ linkCard "Read the agent quickstart" githubAgentQuickstartHref (Just "The repo-first operational path for building with Portico.")
+                  , linkCard "Read the portico-user skill" githubSkillHref (Just "The adoption skill for wiring Portico into a consuming app.")
+                  , slugLinkCard "Read publishability" publishabilitySlug (Just "Keep the release-facing checks inside the delegated workflow.")
                   ]
                   (withEyebrow
-                    "AI-native lane"
+                    "Agent lane"
                     (hero
-                      "Portico is designed to be delegated cleanly."
-                      "Most people evaluating Portico are deciding whether an implementation agent can use it correctly. The supported path is intentionally narrow: one import, semantic site primitives, official themes, validation, and static output.")))
+                      "Give implementation agents a narrow lane."
+                      "Portico is intentionally shaped so a capable agent can stay on one public path: one import, semantic site primitives, official themes, validation, and static output.")))
+            , FeatureGridBlock
+                [ feature "One import path" "Agents should start from Portico, not from a scatter of low-level modules."
+                , feature "Semantic primitives" "Reach for site, page, section, route helpers, and stable blocks before custom escape hatches."
+                , feature "Route helpers, not raw hrefs" "Let the library keep relative links coherent as the output tree or mount path changes."
+                , feature "Validation before publish" "Treat validateSite or validateLocalizedSite as a gate, not as optional polish."
+                ]
+            , CodeBlock
+                (codeSample
+                  aiChecklistCode
+                  Nothing
+                  (Just "Delegation checklist"))
             ]
         , namedSection
-            "Supported operating shape"
+            "Protect these invariants"
             [ FeatureGridBlock
-                [ feature "One import path" "Agents should start from `Portico`, not from scattered low-level modules."
-                , feature "Semantic primitives" "The authoring surface names site roles directly, which reduces drift into raw layout markup."
-                , feature "Official theme path" "A strong default plus explicit presets lowers aesthetic ambiguity for delegated work."
-                , feature "Validation before publish" "Agents can check routes, summaries, and structure before they treat output as acceptable."
-                , feature "Static build path" "Render and file emission stay deterministic and subpath-safe for public hosting."
-                , feature "Repo-first adoption" "Today the safest adoption path is still source-first, with explicit docs and a visible public surface."
+                [ feature "Clarify site kind first" "Official site, docs surface, release page, or editorial page should be explicit before implementation starts."
+                , feature "Grow primitives when patterns repeat" "If the same shape keeps coming back, add a better domain primitive instead of scattering custom markup."
+                , feature "Keep theme separate from content" "Design tokens and visual voice should not leak into the site model."
+                , feature "Stay static-first" "Localization, metadata, and route structure should emit real pages before you consider runtime behavior."
                 ]
             ]
         , namedSection
-            "What to tell the agent"
-            [ CodeBlock
-                (codeSample
-                  "Use Portico for a published static site.\nImport from Portico.\nStay on semantic site primitives.\nKeep theme concerns separate from the content model.\nUse officialTheme or officialThemeWith*.\nRun validateSite before publish.\nEmit static output with emitSite or emitMountedSite."
-                  (Just "text")
-                  (Just "Minimal task packet for an implementation agent"))
-            , CalloutBlock
-                (callout Quiet "Pre-beta posture" "Keep the adoption path repo-first for now: local checkout, explicit public surface, and verification in the consuming workspace.")
-            ]
-        , namedSection
-            "Operational references"
+            "Follow-up links"
             [ LinkGridBlock
-                [ linkCard "Agent Quickstart" githubAgentQuickstartHref (Just "Repo doc for the default AI-oriented implementation path.")
-                , linkCard "portico-user skill" githubSkillHref (Just "Repo-first adoption skill for wiring Portico into a consuming app.")
-                , slugLinkCard "Public Surface" referenceSlug (Just "The supported families and contract rules on the official site.")
-                , slugLinkCard "Publishability" publishabilitySlug (Just "The validation, metadata, and static-output side of the contract.")
-                , linkCard "Distribution note" githubDistributionHref (Just "The current repo-first posture and package-later distribution story.")
-                , linkCard "Open GitHub" githubRepositoryHref (Just "Use the public repository as the live source of truth.")
+                [ slugLinkCard "Start here" startSlug (Just "Use the smallest useful path first.")
+                , slugLinkCard "Read the reference" referenceSlug (Just "Keep the public surface in view while delegating.")
+                , slugLinkCard "Read publishability" publishabilitySlug (Just "Make validation and deploy metadata part of the packet.")
+                , collectionLinkCard "Browse the sample lab" labHomePath (Just "Compare the site model across multiple categories.")
                 ]
             ]
         ])
 
   referencePage =
     withSummary
-      "The current supported Portico surface, contract rules, and docs map."
+      "The current public Portico surface, contract rules, and docs map."
       (page
         referenceSlug
-        (CustomKind "Reference")
-        "Public Surface"
+        Documentation
+        "Reference"
         [ namedSection
-            "Supported families"
-            [ FeatureGridBlock
-                [ feature "Portico.Site" "Site, page, section, block, navigation, link, and publish-time metadata primitives."
-                , feature "Portico.Build" "Static file emission helpers such as `emitSite` and `emitMountedSite`."
-                , feature "Portico.Render" "Pure rendering helpers such as `renderSite`, `renderStaticSite`, `renderPage`, and `renderStylesheet`."
-                , feature "Portico.Validate" "Publishability diagnostics such as `validateSite`, `siteDiagnostics`, and `hasErrors`."
+            "Public surface"
+            [ HeroBlock
+                (withActions
+                  [ slugLinkCard "Start here" startSlug (Just "Read the smallest supported path before you dive into the full surface.")
+                  , linkCard "Open GitHub" githubRepositoryHref (Just "See the current repo-first source of truth.")
+                  , linkCard "Read architecture notes" githubArchitectureHref (Just "See how semantic core, theme, build, and validation are split.")
+                  ]
+                  (withEyebrow
+                    "Current contract"
+                    (hero
+                      "These are the public module families today."
+                      "Portico is still pre-beta, but the current public surface is already organized around one import path and a static-site workflow.")))
+            , FeatureGridBlock
+                [ feature "Portico.Site" "Site, page, section, block, navigation, linking, locale, and publish-time metadata primitives."
+                , feature "Portico.Build" "Static file emission helpers such as emitSite, emitMountedSite, and emitLocalizedSite."
+                , feature "Portico.Render" "Pure rendering helpers such as renderSite, renderStaticSite, renderPage, and renderStylesheet."
+                , feature "Portico.Validate" "Diagnostics such as validateSite, validateLocalizedSite, and the current publishability checks."
                 , feature "Portico.Theme" "Theme tokens and layered customization helpers."
-                , feature "Portico.Theme.Official" "Official presets and the `officialThemeWith*` customization path."
+                , feature "Portico.Theme.Official" "Official presets and officialThemeWith for controlled customization."
                 ]
             ]
         , namedSection
             "Contract rules"
             [ FeatureGridBlock
-                [ feature "Import from `Portico`" "Treat the umbrella module as the intended public entry point while the pre-beta surface settles."
-                , feature "Prefer semantic primitives" "Add or refine domain blocks instead of scattering raw markup when a pattern repeats."
-                , feature "Keep theme separate" "Aesthetic choices belong in the theme layer, not in the page model."
-                , feature "Prefer route helpers" "Use site and collection helpers instead of hand-writing internal relative paths."
-                , feature "Run `validateSite`" "Treat publishability diagnostics as part of the supported workflow before release."
+                [ feature "Import from Portico" "Treat the umbrella module as the intended public entry point while the pre-beta surface settles."
+                , feature "Prefer semantic blocks" "If a public-site pattern is recurring, model it semantically instead of dropping into layout fragments."
+                , feature "Keep the theme separate" "Aesthetic direction belongs in the theme layer, not in the content model."
+                , feature "Validate before release" "Make diagnostics part of the normal workflow before you publish or automate deployment."
                 ]
             ]
         , namedSection
             "Docs map"
             [ LinkGridBlock
-                [ slugLinkCard "Learn where it fits" learnSlug (Just "Category fit, scope, and the Portico vs Asterism boundary.")
-                , slugLinkCard "Get started" startSlug (Just "The shortest supported path from import to emitted output.")
-                , slugLinkCard "AI adoption path" aiPathSlug (Just "The narrower repo-first lane for delegated implementation.")
-                , slugLinkCard "Theme system" themeSlug (Just "Preset selection and layered customization.")
-                , slugLinkCard "Publishability" publishabilitySlug (Just "Validation, metadata, static output, and deploy-oriented files.")
-                , slugLinkCard "Release 0.1.0" releaseSlug (Just "What is live now and what is still moving.")
-                , collectionLinkCard "Sample lab" labHomePath (Just "Broader proof across docs, product, portfolio, profile, event, and publication surfaces.")
-                , linkCard "Deployment guide" githubDeploymentHref (Just "GitHub Pages-oriented build and base-URL flow.")
-                , linkCard "Release checklist" githubReleaseChecklistHref (Just "The current repo-first publication checklist and gate.")
+                [ linkCard "Vision" githubVisionHref (Just "Thesis, scope, and why Portico exists.")
+                , linkCard "Architecture" githubArchitectureHref (Just "The semantic core, theme, build, validation, and optional-islands split.")
+                , linkCard "Agent quickstart" githubAgentQuickstartHref (Just "The repo-first operational path for implementation agents.")
+                , linkCard "Deployment guide" githubDeploymentHref (Just "GitHub Pages and base-url publishing flow.")
+                , linkCard "Distribution note" githubDistributionHref (Just "Repo-first now, package distribution later.")
+                , linkCard "Release checklist" githubReleaseChecklistHref (Just "Pre-beta release gate and publication checklist.")
                 ]
-            ]
-        , namedSection
-            "Still moving"
-            [ CalloutBlock
-                (callout Quiet "Pre-beta contract" "The exact block vocabulary, validator depth, asset story beyond the first stylesheet, and the long-term package split are all still expected to move during pre-beta.")
             ]
         ])
 
@@ -356,131 +452,162 @@ officialSite =
         Documentation
         "Theme System"
         [ namedSection
-            "How to choose"
-            [ ProseBlock "Start from site intent and reading posture before you start thinking about accent color. The official system is meant to stay opinionated enough to produce strong public surfaces quickly."
+            "Choose a voice, then tune in layers"
+            [ HeroBlock
+                (withActions
+                  [ collectionLinkCard "Open the preset catalog" presetCatalogPath (Just "Pick a theme by site intent before you fine-tune it.")
+                  , collectionLinkCard "Browse the sample lab" labHomePath (Just "See the official themes applied to real sample surfaces.")
+                  , slugLinkCard "Start here" startSlug (Just "Build one site before you widen the customization surface.")
+                  ]
+                  (withEyebrow
+                    "Themes"
+                    (hero
+                      "Start from a voice, not from loose variables."
+                      "Portico's official theme system gives you directional presets first, then controlled overrides for palette, typography, spacing, surface, radius, and shadow.")))
             , FeatureGridBlock
-                [ feature "Start from intent" "Choose docs, studio, launch, or publication posture before you start tuning color or typography."
-                , feature "Customize in layers" "Accent, palette, typography, spacing, surface, radius, and shadow sit on top of the official system instead of replacing it."
-                , feature "Keep the DSL semantic" "Theme detail belongs in the theme layer, not in the page model."
+                [ feature "SignalPaper" "Calm default for docs and official project surfaces."
+                , feature "CopperLedger" "Warmer, tighter voice for studio, portfolio, or case-study pages."
+                , feature "NightCircuit" "Wider and darker for launch, technical announcement, or event-style surfaces."
+                , feature "BlueLedger" "Narrower publication voice for notebooks, essays, and editorial reading."
                 ]
-            ]
-        , namedSection
-            "Official presets"
-            [ FeatureGridBlock
-                [ feature "SignalPaper" "Calm default for official docs and project surfaces."
-                , feature "CopperLedger" "Tighter, warmer studio or portfolio voice."
-                , feature "NightCircuit" "Wider, darker technical launch or event voice."
-                , feature "BlueLedger" "Narrower publication or notebook voice."
-                ]
-            ]
-        , namedSection
-            "Customization ladder"
-            [ CodeBlock
+            , CodeBlock
                 (codeSample
-                  "import Portico\n\nlaunchTheme =\n  officialThemeWith\n    ((officialThemeOptions SignalPaper)\n      { accent = Just \"#0f766e\"\n      , spacing = Just\n          { pageInset: \"3.2rem\"\n          , pageTop: \"4.7rem\"\n          , pageBottom: \"5.6rem\"\n          , sectionGap: \"3.2rem\"\n          , stackGap: \"1.3rem\"\n          , cardPadding: \"1.4rem\"\n          , heroPadding: \"2.35rem\"\n          }\n      })"
+                  themeCode
                   (Just "purescript")
-                  (Just "One code-first entry point for official-theme customization"))
+                  (Just "Layered official-theme customization"))
+            ]
+        , namedSection
+            "What changes cleanly"
+            [ FeatureGridBlock
+                [ feature "Accent or palette" "Nudge one brand color or swap in a full palette while staying on the official system."
+                , feature "Typography" "Change display, body, and mono fonts without rewriting render markup."
+                , feature "Spacing" "Change density, pacing, and rhythm at the theme-token layer."
+                , feature "Surface and chrome" "Adjust frame width, pill shape, header treatment, and hero surface without leaking design into content values."
+                ]
             , CalloutBlock
-                (callout Quiet "Optional proof" "Use the preset catalog after the site category is already clear. It is supporting proof, not the first decision point.")
-            , LinkGridBlock
-                [ collectionLinkCard "Browse the preset catalog" presetCatalogPath (Just "See the presets mapped to generated sample surfaces.")
-                , collectionLinkCard "Compare the sample lab" labHomePath (Just "Pressure-test the official theme system across multiple site categories.")
-                , slugLinkCard "Return to start" startSlug (Just "Keep the supported authoring path in view while choosing a theme.")
-                , slugLinkCard "Return to reference" referenceSlug (Just "Re-check the supported surface while you customize.")
+                (callout Quiet "The official site uses the same system" "Portico's own public site is emitted with the official theme system rather than with a one-off CSS stack outside the library.")
+            ]
+        , namedSection
+            "See it on real sites"
+            [ LinkGridBlock
+                [ collectionLinkCard "Preset catalog" presetCatalogPath (Just "Compare presets and customization paths from one chooser page.")
+                , collectionLinkCard "Northline Docs" docsSamplePath (Just "See the calmer docs-facing voice in a sample surface.")
+                , collectionLinkCard "Northstar Cloud" productSamplePath (Just "See a stronger product-landing interpretation of the official system.")
+                , collectionLinkCard "Mina Arai" profileSamplePath (Just "See the system adapted to a profile and case-study surface.")
+                , collectionLinkCard "Signal Summit" summitSamplePath (Just "See the darker event-oriented voice in practice.")
                 ]
             ]
         ])
 
   publishabilityPage =
     withSummary
-      "Validation, build output, and deploy-oriented metadata for public surfaces."
+      "Validation, metadata, localization, and deploy-oriented output for publishable static sites."
       (page
         publishabilitySlug
         Documentation
-        "Publishability"
+        "Publish"
         [ namedSection
-            "What Portico checks"
-            [ FeatureGridBlock
-                [ feature "Validator first" "Check for missing index pages, duplicate paths, broken internal routes, weak summaries, and misplaced heroes before publish."
-                , feature "Metadata from the model" "Canonical, OG, and Twitter tags are derived from site and page values instead of raw head markup."
-                , feature "Localized bundles" "Localized site variants can emit real `lang`, language-switch routes, and `hreflang` alternates without turning the site into a client-side app."
-                , feature "Static output" "Emit files that stay subpath-safe under nested routes, shared CSS assets, and mounted collections."
-                , feature "Pages-ready files" "GitHub Pages-style output can include `404.html`, `robots.txt`, and `sitemap.xml` without polluting the semantic site DSL."
+            "Publish like a site, not a bundle"
+            [ HeroBlock
+                (withActions
+                  [ linkCard "Read the deployment guide" githubDeploymentHref (Just "See the GitHub Pages-oriented publishing path.")
+                  , slugLinkCard "Read release 0.1.0" releaseSlug (Just "See the current shipped slice and what is still moving.")
+                  , slugLinkCard "Read the AI workflow" aiPathSlug (Just "Keep delegated authoring and release checks aligned.")
+                  ]
+                  (withEyebrow
+                    "Publishability"
+                    (hero
+                      "Treat publishability as part of authoring."
+                      "Routes, summaries, metadata, locale variants, and static host output are part of the site product. Portico keeps them inside the same authoring loop instead of leaving them to a separate cleanup phase.")))
+            , FeatureGridBlock
+                [ feature "Structure and route checks" "Catch missing index pages, duplicate paths, duplicate section ids, and broken internal site links."
+                , feature "Content-quality checks" "Warn when summaries are missing or when navigation and link-card labels are left empty."
+                , feature "Metadata and locale output" "Derive canonical URLs, social metadata, lang, and hreflang from the site model."
+                , feature "Deploy-oriented files" "Emit shared CSS, 404.html, robots.txt, sitemap.xml, and localized static routes for Pages-style hosting."
+                ]
+            , TimelineBlock
+                [ timelineEntry "Model the site" "Keep public structure, metadata, and locale variants in the site definition itself." Nothing
+                , timelineEntry "Validate" "Use validateSite or validateLocalizedSite before you treat the site as release-ready." Nothing
+                , timelineEntry "Render and emit" "Generate clean output paths, shared stylesheets, relative links, and static assets." Nothing
+                , timelineEntry "Deploy" "Add a base URL, build pages output, and publish with a static host such as GitHub Pages." Nothing
                 ]
             ]
         , namedSection
-            "Build sequence"
-            [ TimelineBlock
-                [ timelineEntry "Render" "Use `renderSite` for quick inspection or inline previews while the page model is still moving." Nothing
-                , timelineEntry "Validate" "Use `validateSite` as the publishability gate before treating a site definition as release-ready." Nothing
-                , timelineEntry "Localize" "Group locale variants into one static bundle when the public site needs language switching without runtime-heavy state." Nothing
-                , timelineEntry "Emit" "Use `emitSite`, `emitMountedSite`, or `emitLocalizedSite` once the surface is ready for static hosting output." Nothing
-                , timelineEntry "Publish" "Add a base URL and deploy-oriented files once the site is meant to behave like a real public artifact." Nothing
-                ]
-            , CodeBlock
+            "Localized static output"
+            [ CodeBlock
                 (codeSample
-                  "import Portico\n\nreport = validateLocalizedSite localizedDefinition\nsiteHasErrors = hasLocalizedErrors localizedDefinition\n\nmain =\n  emitLocalizedSite \"site/dist\" officialTheme localizedDefinition"
+                  localizedCode
                   (Just "purescript")
-                  (Just "Validation before emitting a localized bundle"))
-            ]
-        , namedSection
-            "Common questions"
-            [ FaqBlock
-                [ faqEntry "Do I need a base URL to render?" "No. Base URLs matter when you want canonical and social metadata, not when you are still previewing locally."
-                , faqEntry "Can Portico localize a static site?" "Yes. The supported path is static-first: emit multiple locale variants as real pages, keep language switching link-based, and let the build layer handle `lang` plus alternate metadata."
-                , faqEntry "Should I hand-write relative links?" "Prefer route helpers and mounted collection helpers so nested output stays coherent."
-                , faqEntry "What is the release-oriented repo check?" "Use `npm run verify`. It composes tests with standalone sample-lab, official-site, and GitHub Pages-style build output."
-                , faqEntry "Is Portico trying to be a static CMS?" "No. The target is authored static surfaces with strong information architecture, not content-management tooling."
+                  (Just "Localized static publishing"))
+            , FaqBlock
+                [ faqEntry "Do I need a base URL to render?" "No. Base URLs matter when you want canonical or social URLs and deploy-oriented output such as sitemap.xml. Rendering and relative links still work without one."
+                , faqEntry "Can Portico localize a static site?" "Yes. The supported path is static-first: emit real locale variants as real pages, keep language switching link-based, and let the build layer handle lang and alternate metadata."
+                , faqEntry "Is Portico trying to be a static CMS?" "No. The target is authored static surfaces with strong information architecture, not a content-management product."
+                , faqEntry "Does publishability stop at HTML?" "No. The build story also covers CSS assets, canonical and social metadata, localized alternates, and static-host helper files."
                 ]
             ]
         , namedSection
-            "Deploy-oriented docs"
+            "Next"
             [ LinkGridBlock
-                [ slugLinkCard "Read the reference" referenceSlug (Just "Return to the supported families and contract rules.")
-                , slugLinkCard "Read the AI path" aiPathSlug (Just "Keep the delegated authoring path aligned with the publishability contract.")
-                , linkCard "Read the deployment guide" githubDeploymentHref (Just "Review the GitHub Pages-oriented build and base-URL flow.")
-                , linkCard "Read the release checklist" githubReleaseChecklistHref (Just "See the repo-first publication gate and checklist.")
+                [ slugLinkCard "Read the reference" referenceSlug (Just "See the current public modules behind the publish path.")
+                , slugLinkCard "Read the AI workflow" aiPathSlug (Just "Keep delegated work aligned with validation and deploy concerns.")
+                , linkCard "Read the deployment guide" githubDeploymentHref (Just "Follow the GitHub Pages-oriented publishing flow.")
+                , collectionLinkCard "Browse the sample lab" labHomePath (Just "See the output story across multiple public-site shapes.")
                 ]
             ]
         ])
 
   releasePage =
     withSummary
-      "The first working slice of Portico."
+      "The first practical Portico slice."
       (page
         releaseSlug
         ReleaseNotes
         "Release 0.1.0"
         [ namedSection
-            "What is live now"
+            "Release 0.1.0"
+            [ HeroBlock
+                (withActions
+                  [ linkCard "Open GitHub" githubRepositoryHref (Just "Read the repo, changelog, and current issues.")
+                  , collectionLinkCard "Browse the sample lab" labHomePath (Just "See the broader proof surface that pressures the library.")
+                  , linkCard "Read the distribution note" githubDistributionHref (Just "See the repo-first posture and why package release is later.")
+                  ]
+                  (withEyebrow
+                    "Status"
+                    (hero
+                      "Portico is in public pre-beta."
+                      "The semantic site model, official theme system, validation layer, localized output, and GitHub Pages-oriented build path are all live now. Package distribution and the final public contract are still being tightened.")))
+            , FeatureGridBlock
+                [ feature "Semantic site DSL" "Site, page, section, navigation, metadata, and pressure-tested block primitives for public surfaces."
+                , feature "Official theme system" "Directional presets plus layered customization for palette, typography, spacing, and chrome."
+                , feature "Publishability and build" "Validation, canonical and social metadata, localized bundles, and Pages-style output are already in the repo."
+                , feature "Dogfooded proof surface" "The official site and mounted sample lab are both emitted by Portico and used as the main public onboarding surface."
+                ]
+            , CalloutBlock
+                (callout Strong "What this release means" "Portico is ready for serious evaluation from a local checkout. It is not yet promising the stability or packaging posture of a frozen registry release.")
+            ]
+        , namedSection
+            "What shipped"
             [ FeatureGridBlock
-                [ feature "Typed site model" "Site, page, section, navigation, route, and block vocabulary are already in place for published static surfaces."
-                , feature "Official theme system" "The official preset path, layered customization, and preset catalog are all live."
-                , feature "Publishability and build" "Validation, canonical/social metadata, static emission, localized bundles, and GitHub Pages-style output are already part of the repo-first slice."
-                , feature "Mounted proof surface" "The official site and broader sample lab now ship side by side as the public onboarding surface."
+                [ feature "Static-site fundamentals" "Relative links, shared CSS, assets, canonical metadata, and static file emission."
+                , feature "Localized publishing" "English and Japanese official-site variants emitted from one localized bundle with alternate metadata."
+                , feature "Validator baseline" "Checks for path collisions, broken routes, weak summaries, misplaced heroes, and other publishability concerns."
+                , feature "Pressure-test gallery" "Six generated sample sites plus a preset catalog used to expose gaps in the model."
                 ]
             ]
         , namedSection
-            "Current posture"
-            [ CalloutBlock
-                (callout Strong "Status" "Portico is in public pre-beta. The official site, repo docs, sample lab, validation path, and GitHub Pages build are live, while package distribution and final contract details are still moving.")
-            ]
-        , namedSection
-            "Still moving"
-            [ FeatureGridBlock
-                [ feature "Block vocabulary" "The exact semantic block set will keep being pressure-tested against real public-site shapes."
-                , feature "Validator depth" "Diagnostics coverage will keep expanding beyond the first publishability pass."
-                , feature "Asset story" "The path beyond the first shared stylesheet and mounted sample assets is still intentionally open."
-                , feature "Package split" "The long-term registry packaging and package metadata are still intentionally deferred."
+            "Next"
+            [ TimelineBlock
+                [ timelineEntry "Richer validators" "Grow diagnostics beyond the first publishability baseline so the site model carries more release confidence." Nothing
+                , timelineEntry "A stronger asset story" "Move beyond the first shared stylesheet toward a fuller publish-time asset model." Nothing
+                , timelineEntry "Sharper official themes" "Keep improving the official visual defaults so Portico sites look more intentional out of the box." Nothing
+                , timelineEntry "More pressure from the lab" "Keep adding samples and refinements that expose weak spots in the site vocabulary." Nothing
                 ]
-            ]
-        , namedSection
-            "Next moves"
-            [ LinkGridBlock
-                [ slugLinkCard "Learn where it fits" learnSlug (Just "Return to the category and scope framing.")
-                , slugLinkCard "Start with the supported path" startSlug (Just "Move from release posture into the concrete authoring path.")
-                , collectionLinkCard "Browse the sample lab" labHomePath (Just "Use the pressure-test surfaces to see where the model still needs work.")
-                , linkCard "Open GitHub" githubRepositoryHref (Just "Track code, issues, docs, and the current pre-beta posture in the public repo.")
+            , LinkGridBlock
+                [ linkCard "Read the release checklist" githubReleaseChecklistHref (Just "The current pre-beta release gate and publication checklist.")
+                , linkCard "Read the distribution note" githubDistributionHref (Just "Why the project is repo-first today and package-first later.")
+                , slugLinkCard "Read publishability" publishabilitySlug (Just "The validation and deploy-facing side of the current release.")
+                , slugLinkCard "Read the theme system" themeSlug (Just "The design layer that still needs the most visible strengthening.")
                 ]
             ]
         ])
