@@ -291,7 +291,7 @@ japaneseSiteLabels =
   , localeNavigation: "言語切替"
   , openLink: "開く"
   , landingKind: "トップ"
-  , documentationKind: "ガイド"
+  , documentationKind: "ドキュメント"
   , articleKind: "記事"
   , releaseNotesKind: "リリースノート"
   , showcaseKind: "作例"

@@ -203,7 +203,7 @@ main = do
   emitLocalizedSite localizedOutputDirectory officialSiteTheme officialLocalizedSite
   emittedLocalizedJaHome <- readTextFile (localizedOutputDirectory <> "/ja/index.html")
   emittedLocalizedJaStylesheet <- readTextFile (localizedOutputDirectory <> "/ja/assets/portico.css")
-  assert "emitted localized japanese home should contain translated copy" (contains (Pattern "公開サイトの front door を、静的に組み立てる。") emittedLocalizedJaHome)
+  assert "emitted localized japanese home should contain translated copy" (contains (Pattern "公開サイトの入口を、情報の構造から作る。") emittedLocalizedJaHome)
   assert "emitted localized japanese home should contain alternate links" (contains (Pattern "href=\"../index.html\"") emittedLocalizedJaHome)
   assert "emitted localized japanese stylesheet should contain shared block styles" (contains (Pattern ".block-card") emittedLocalizedJaStylesheet)
   assert "emitted localized japanese stylesheet should contain ja-specific typography rules" (contains (Pattern "html:lang(ja) .page-intro h1") emittedLocalizedJaStylesheet)
